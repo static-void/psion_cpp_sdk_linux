@@ -129,4 +129,4 @@ find . -type f \( -iname "*.mmp" \) -print0 | xargs -0 sed -i -e "s/\([A-Za-z0-9
 printf '%s\n' 'export EPOCROOT=`pwd`/epoc_cpp_sdk' 'export PATH=$PATH:`pwd`/gcc-3.0-psion-98r2-9/bin:`pwd`/epoc_cpp_sdk/epoc32/tools' 'export TMP=`pwd`/epoc_cpp_sdk/tmp' > $SDK/start_epoc_sdk.sh
 
 # Create a symlink for an x: drive in wine so the emulator works
-ln -s $EPOCROOT $HOME/.wine/dosdevices/x:
+ln -s $SDK $HOME/.wine/dosdevices/x:
