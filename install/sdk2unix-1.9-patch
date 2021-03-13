@@ -1,0 +1,2640 @@
+diff -Naur sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/bmconv.h sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/bmconv.h
+--- sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/bmconv.h	2005-12-26 10:43:06.000000000 +0000
++++ sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/bmconv.h	2021-02-16 23:33:57.619750714 +0000
+@@ -7,8 +7,8 @@
+ #define __BMCONV_H__
+ 
+ #include <string.h>
+-#include <iostream.h>
+-#include <fstream.h>
++#include <iostream>
++#include <fstream>
+ #include <stdlib.h>
+ 
+ // As suggested by Gerardo Lamastra
+@@ -222,7 +222,7 @@
+ 	int HexToInt(char aNibble);
+ 	static void CopyTail(void* aDst, void* aSrc, int aFullSize, int aSkipped);
+ private:
+-	fstream iDestFile;
++	std::fstream iDestFile;
+ 	char** iSourcefilenames;
+ 	SEpocBitmapHeader** iPbmSources;
+ 	int iNumSources;
+@@ -262,8 +262,8 @@
+ 	int LoadFile(char* aFilename,int aIndex);
+ 	int LoadRom(char* aFilename,int aIndex);
+ 	TRgb GetPixel(int aXCoord,int aYCoord);
+-	int DoLoadFile(fstream& aFile);
+-	int DoLoadRom(fstream& aFile);
++	int DoLoadFile(std::fstream& aFile);
++	int DoLoadRom(std::fstream& aFile);
+ 	int ExpandByteRLEData(char* aDest,int aDestSize,char* aSrce,int aSrceSize);
+ 	int ExpandTwelveBitRLEData(char* aDest,int aDestSizeInBytes,char* aSrce,int aSrceSizeInBytes);
+ 	int ExpandSixteenBitRLEData(char* aDest,int aDestSizeInBytes,char* aSrce,int aSrceSizeInBytes);
+diff -Naur sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/bmtopbm.cpp sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/bmtopbm.cpp
+--- sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/bmtopbm.cpp	2004-01-05 00:23:39.000000000 +0000
++++ sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/bmtopbm.cpp	2021-02-16 23:34:43.771884917 +0000
+@@ -21,7 +21,7 @@
+ int BitmapLoader::LoadBitmap(char* aFileName,int aBpp,TBitmapColor aColor,SEpocBitmapHeader*& aPbm)
+ 	{
+ 	char sig[2];
+-	fstream file(aFileName,ios::in|ios::binary);
++	std::fstream file(aFileName,std::ios::in|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		return Files;
+ 	file.read(sig,2);
+@@ -39,7 +39,7 @@
+ 
+ int BitmapLoader::DoLoad(char* aFileName)
+ 	{
+-	fstream file(aFileName,ios::in|ios::binary);
++	std::fstream file(aFileName,std::ios::in|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		return Files;
+ 	TBitmapFileHeader bmpfile;
+diff -Naur sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/mainfunc.cpp sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/mainfunc.cpp
+--- sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/mainfunc.cpp	2004-01-05 00:23:39.000000000 +0000
++++ sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/mainfunc.cpp	2021-02-16 23:36:38.940225454 +0000
+@@ -3,7 +3,7 @@
+ // Copyright (c) 1997-2003 Symbian Ltd.  All rights reserved.
+ //
+ 
+-#include <iostream.h>
++#include <iostream>
+ #include <toolsver.h>
+ #include "bmconv.h"
+ #include <sys/types.h>
+@@ -53,15 +53,15 @@
+ 
+ void Header()
+ 	{
+-	cout << "\n";
+-	cout << "\n";
+-	cout << "BMCONV version "<< version << ".\n";
++	std::cout << "\n";
++	std::cout << "\n";
++	std::cout << "BMCONV version "<< version << ".\n";
+ 	}
+ 	
+ void Report(int aError)
+ 	{
+ 	Header();
+-	cout << ErrorMessage(aError) << "\n";
++	std::cout << ErrorMessage(aError) << "\n";
+ 	}
+ 	
+ void CompilationReport(int aQuiet,int aError,TStoreType aType,char* aDestfile,char** aBitmapFiles,int aNumFiles)
+@@ -69,75 +69,75 @@
+ 	if(!aQuiet || aError)
+ 		{
+ 		Header();
+-		cout << "Compiling...\n";
++		std::cout << "Compiling...\n";
+ 		if(aType!=ENoStore)
+-			cout << "Multiple bitmap store type: ";
++			std::cout << "Multiple bitmap store type: ";
+ 		if(aType==EFileStore)
+-			cout << "File store" << "\n";
++			std::cout << "File store" << "\n";
+ 		else if(aType==ERomStore)
+-			cout << "ROM image store" << "\n";
++			std::cout << "ROM image store" << "\n";
+ 		else if(aType==ECompressedRomStore)
+-			cout << "Compressed ROM image store" << "\n";
++			std::cout << "Compressed ROM image store" << "\n";
+ 		if(aDestfile!=NULL)
+-			cout << "Epoc file: " << aDestfile << "\n\n";
++			std::cout << "Epoc file: " << aDestfile << "\n\n";
+ 		for(int count=0;count<aNumFiles;count++)
+ 			{
+-			cout << "Bitmap file " << count+1 << "	: ";
+-			cout << aBitmapFiles[count] << "\n";
++			std::cout << "Bitmap file " << count+1 << "	: ";
++			std::cout << aBitmapFiles[count] << "\n";
+ 			}
+-		cout << ErrorMessage(aError) << "\n";
++		std::cout << ErrorMessage(aError) << "\n";
+ 		}
+ 	}
+ 	
+ void DecompilationReport(int aError,char* aDestfile,char** aBitmapFiles,int aNumFiles)
+ 	{	
+ 	Header();
+-	cout << "Decompiling...\n";
++	std::cout << "Decompiling...\n";
+ 	if(aDestfile!=NULL)
+-		cout << "Epoc file: " << aDestfile << "\n\n";
++		std::cout << "Epoc file: " << aDestfile << "\n\n";
+ 	for(int count=0;count<aNumFiles;count++)
+ 		{
+-		cout << "Bitmap file " << count+1 << "	: ";
+-		cout << aBitmapFiles[count] << "\n";
++		std::cout << "Bitmap file " << count+1 << "	: ";
++		std::cout << aBitmapFiles[count] << "\n";
+ 		}
+-	cout << ErrorMessage(aError) << "\n";
++	std::cout << ErrorMessage(aError) << "\n";
+ 	}
+ 	
+ void Usage()
+     {
+-	cout << "\n";
+-	cout << "BMCONV version "<< version << ".\n";
+-	cout << "Symbian OS multiple bitmap file/rom store conversion program.\n";
+-	cout << "Copyright (c) 1998-2001 Symbian Ltd.  All rights reserved.";
+-	cout << "\n";
+-	cout << "\n";
+-	cout << "Usage:\n";
+-	cout << "BMCONV [/r|/s|/n] [/hfilename] [/q] [/pfilename] epocfile [OPT]bmp_1 ... [OPT]bmp_n\n";
+-	cout << "BMCONV [/r|/s|/n] [/q] [/pfilename] epocfile /mepocfile2\n";
+-	cout << "BMCONV /u epocfile bmp_1 [... bmp_n]\n";
+-	cout << "BMCONV /v epocfile\n";
+-	cout << "BMCONV commandfile\n";
+-	cout << "\n";
+-	cout << " /r specifies a ROM image destination file,\n";
+-	cout << " /s specifies a compressed ROM image file,\n";
+-	cout << " /n disables bitmap File Store compression,\n";
+-	cout << " the default is a compressed File Store file.\n\n";
+-	cout << " /q specifies quiet mode - only errors are reported.\n\n";
+-	cout << " /hfilename specifies the filename for the automatic\n";
+-	cout << " generation of a header file for inclusion into code.\n\n";
+-	cout << " /pfilename gives the filename of a palette file containing 256 hex\n";
+-	cout << " numbers (0x00BBGGRR) specifying the palette for 8bpp colour bitmaps.\n";
+-	cout << " (Omission results in the use of a default palette.)\n\n";
+-	cout << " OPT may be one of /1, /2, /4, /8, /c4, /c8, /c12, /c16, /c24 /c32\n";
+-	cout << " specifying bits per pixel and grey-scale/colour, or /mepocfile2\n";
+-	cout << " to specify an existing multiple bitmap file. default is /2.\n\n";
+-	cout << " epocfile specifies the epoc multi-bitmap file name.\n";
+-	cout << " bmp_n specifies the nth bitmap file name.\n\n";
+-	cout << " /u decompiles epocfile to bmp_1,...,bmp_n\n";
+-	cout << " /v displays a summary of the bitmaps in epocfile\n";
+-	cout << " otherwise bmp_1,...,bmp_n are compiled to epocfile\n\n";
+-	cout << " commandfile specifies a file containing the commandline\n";
+-	cout << " with commands separated by spaces or newlines.\n";
++	std::cout << "\n";
++	std::cout << "BMCONV version "<< version << ".\n";
++	std::cout << "Symbian OS multiple bitmap file/rom store conversion program.\n";
++	std::cout << "Copyright (c) 1998-2001 Symbian Ltd.  All rights reserved.";
++	std::cout << "\n";
++	std::cout << "\n";
++	std::cout << "Usage:\n";
++	std::cout << "BMCONV [/r|/s|/n] [/hfilename] [/q] [/pfilename] epocfile [OPT]bmp_1 ... [OPT]bmp_n\n";
++	std::cout << "BMCONV [/r|/s|/n] [/q] [/pfilename] epocfile /mepocfile2\n";
++	std::cout << "BMCONV /u epocfile bmp_1 [... bmp_n]\n";
++	std::cout << "BMCONV /v epocfile\n";
++	std::cout << "BMCONV commandfile\n";
++	std::cout << "\n";
++	std::cout << " /r specifies a ROM image destination file,\n";
++	std::cout << " /s specifies a compressed ROM image file,\n";
++	std::cout << " /n disables bitmap File Store compression,\n";
++	std::cout << " the default is a compressed File Store file.\n\n";
++	std::cout << " /q specifies quiet mode - only errors are reported.\n\n";
++	std::cout << " /hfilename specifies the filename for the automatic\n";
++	std::cout << " generation of a header file for inclusion into code.\n\n";
++	std::cout << " /pfilename gives the filename of a palette file containing 256 hex\n";
++	std::cout << " numbers (0x00BBGGRR) specifying the palette for 8bpp colour bitmaps.\n";
++	std::cout << " (Omission results in the use of a default palette.)\n\n";
++	std::cout << " OPT may be one of /1, /2, /4, /8, /c4, /c8, /c12, /c16, /c24 /c32\n";
++	std::cout << " specifying bits per pixel and grey-scale/colour, or /mepocfile2\n";
++	std::cout << " to specify an existing multiple bitmap file. default is /2.\n\n";
++	std::cout << " epocfile specifies the epoc multi-bitmap file name.\n";
++	std::cout << " bmp_n specifies the nth bitmap file name.\n\n";
++	std::cout << " /u decompiles epocfile to bmp_1,...,bmp_n\n";
++	std::cout << " /v displays a summary of the bitmaps in epocfile\n";
++	std::cout << " otherwise bmp_1,...,bmp_n are compiled to epocfile\n\n";
++	std::cout << " commandfile specifies a file containing the commandline\n";
++	std::cout << " with commands separated by spaces or newlines.\n";
+ 	}
+ 
+ int IsWhiteSpace(char aCharacter)
+@@ -154,7 +154,7 @@
+ 	int filesize=fileinfo.st_size;
+ 	if (filesize==0)
+ 		return NoError;
+-	fstream commandfile(aCommandFileName,ios::in|ios::binary);
++	std::fstream commandfile(aCommandFileName,std::ios::in|std::ios::binary);
+ 	if(!commandfile.is_open())
+ 		return CommandFile;
+ 
+@@ -301,12 +301,12 @@
+ 	int ret = pl.EpocBitmapCount(aSourceFile, numSources, romFormat);
+ 	if (ret)
+ 		{
+-		cout << "Problem reading number of bitmaps \n";
+-		cout << ErrorMessage(ret) << "\n";
++		std::cout << "Problem reading number of bitmaps \n";
++		std::cout << ErrorMessage(ret) << "\n";
+ 		return;
+ 		}
+ 
+-	cout << aSourceFile << " is a " << (romFormat? "ROM image":"File store") 
++	std::cout << aSourceFile << " is a " << (romFormat? "ROM image":"File store") 
+ 		<< " containing " << numSources << ((numSources==1)? " bitmap\n":" bitmaps\n");
+ 
+ 	for (int count = 0;count<numSources;count++)
+@@ -314,27 +314,27 @@
+ 		ret = pl.LoadEpocBitmap(aSourceFile,count);
+ 		if (ret == OutOfRange)
+ 			break;
+-		cout << "\n";
++		std::cout << "\n";
+ 		if (ret)
+ 			{
+-			cout << "Problem loading bitmap number " << count << "\n";
+-			cout << ErrorMessage(ret) << "\n";
++			std::cout << "Problem loading bitmap number " << count << "\n";
++			std::cout << ErrorMessage(ret) << "\n";
+ 			break;
+ 			}
+ 		else
+ 			{
+ 			SEpocBitmapHeader h = pl.Header();
+-			cout << "Bitmap " << count + 1 << " information:\n";
+-			cout << "Pixel size " << h.iWidthInPixels << " x " << h.iHeightInPixels << "\n";
+-			cout << "Twips size " << h.iWidthInTwips << " x " << h.iHeightInTwips << "\n";
+-			cout << h.iBitsPerPixel << " Bpp ";
++			std::cout << "Bitmap " << count + 1 << " information:\n";
++			std::cout << "Pixel size " << h.iWidthInPixels << " x " << h.iHeightInPixels << "\n";
++			std::cout << "Twips size " << h.iWidthInTwips << " x " << h.iHeightInTwips << "\n";
++			std::cout << h.iBitsPerPixel << " Bpp ";
+ 			if (h.iColor)
+-				cout << "Colour";
++				std::cout << "Colour";
+ 			else
+-				cout << "Monochrome";
+-			cout << "\n";
++				std::cout << "Monochrome";
++			std::cout << "\n";
+ 			if (h.iPaletteEntries > 0)
+-				cout << "Palette entries " << h.iPaletteEntries;
++				std::cout << "Palette entries " << h.iPaletteEntries;
+ 
+ 			int byteSize = BitmapUtils::ByteWidth(h.iWidthInPixels,h.iBitsPerPixel) * h.iHeightInPixels;
+ 			int compressionRatio = 0;
+@@ -344,25 +344,25 @@
+ 			switch (h.iCompression)
+ 				{
+ 			case ENoBitmapCompression:
+-				cout << "No compression\n";
++				std::cout << "No compression\n";
+ 				break;
+ 			case EByteRLECompression:
+-				cout << "Bytewise RLE compression " << compressionRatio << "%\n";
++				std::cout << "Bytewise RLE compression " << compressionRatio << "%\n";
+ 				break;
+ 			case ETwelveBitRLECompression:
+-				cout << "12 bit RLE compression " << compressionRatio << "%\n";
++				std::cout << "12 bit RLE compression " << compressionRatio << "%\n";
+ 				break;
+ 			case ESixteenBitRLECompression:
+-				cout << "16 bit RLE compression " << compressionRatio << "%\n";
++				std::cout << "16 bit RLE compression " << compressionRatio << "%\n";
+ 				break;
+ 			case ETwentyFourBitRLECompression:
+-				cout << "24 bit RLE compression " << compressionRatio << "%\n";
++				std::cout << "24 bit RLE compression " << compressionRatio << "%\n";
+ 				break;
+ 				}
+ 			}
+ 		}
+ 
+-	cout << "\n";
++	std::cout << "\n";
+ 	}
+ 
+ 
+diff -Naur sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/pbmcomp.cpp sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/pbmcomp.cpp
+--- sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/pbmcomp.cpp	2004-01-05 00:23:39.000000000 +0000
++++ sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/pbmcomp.cpp	2021-02-16 23:35:30.384021829 +0000
+@@ -33,7 +33,7 @@
+ 	if (ret)
+ 		return ret;
+ 
+-	iDestFile.open(aDestfilename,ios::out|ios::binary);
++	iDestFile.open(aDestfilename,std::ios::out|std::ios::binary);
+ 	if(iDestFile.is_open()==0)
+ 		return DestFile;
+ 	if (iNumSources < 1)
+@@ -45,7 +45,7 @@
+ 		// a filestore into a ROM image.
+ 		if (aHeaderFilename)
+ 			{
+-			cout << "Header file generation is not permitted with /m\n";
++			std::cout << "Header file generation is not permitted with /m\n";
+ 			aHeaderFilename = NULL;
+ 			}
+ 		iSourcefilenames[0]+=2;
+@@ -401,7 +401,7 @@
+ 	if (filesize == 0)
+ 		return PaletteFile;
+ 
+-	fstream paletteFile(aPaletteFilename,ios::in|ios::binary);
++	std::fstream paletteFile(aPaletteFilename,std::ios::in|std::ios::binary);
+ 	if(!paletteFile.is_open())
+ 		return PaletteFile;
+ 
+@@ -476,7 +476,7 @@
+ 	if (!aHeaderFilename)
+ 		return NoError;
+ 
+-	fstream hf(aHeaderFilename,ios::out);
++	std::fstream hf(aHeaderFilename,std::ios::out);
+ 	if(!hf.is_open())
+ 		return DestFile;
+ 
+diff -Naur sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/pbmtobm.cpp sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/pbmtobm.cpp
+--- sdk2unix-1.9/helpers/bmconv-1.1.0-2/src/pbmtobm.cpp	2004-01-05 00:23:39.000000000 +0000
++++ sdk2unix-1.9-new/helpers/bmconv-1.1.0-2/src/pbmtobm.cpp	2021-02-16 23:37:20.528350159 +0000
+@@ -17,7 +17,7 @@
+ 
+ int EpocLoader::EpocBitmapCount(char* aFileName, int& aCount, int& isRomFormat)
+     {
+-	fstream file(aFileName,ios::in|ios::binary);
++	std::fstream file(aFileName,std::ios::in|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		return Files;
+ 
+@@ -47,7 +47,7 @@
+ 		file.read((char *)wordbuffer,4);
+ 		if (file.gcount()!=4)
+ 			return SourceFile;
+-		file.seekg(get_u32(wordbuffer),ios::beg);
++		file.seekg(get_u32(wordbuffer),std::ios::beg);
+ 		}
+ 	file.read((char *)wordbuffer,4);
+ 	if (file.gcount()!=4)
+@@ -58,7 +58,7 @@
+ 
+ int EpocLoader::LoadEpocBitmap(char* aFileName,int aIndex)
+ 	{
+-	fstream file(aFileName,ios::in|ios::binary);
++	std::fstream file(aFileName,std::ios::in|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		return Files;
+ 
+@@ -76,7 +76,7 @@
+ 
+ int EpocLoader::LoadFile(char* aFileName,int aIndex)
+ 	{
+-	fstream file(aFileName,ios::in|ios::binary);
++	std::fstream file(aFileName,std::ios::in|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		return Files;
+ 
+@@ -96,7 +96,7 @@
+ 	file.read((char *)wordbuffer,4);
+ 	if (file.gcount()!=4)
+ 		return SourceFile;
+-	file.seekg(get_u32(wordbuffer),ios::beg);
++	file.seekg(get_u32(wordbuffer),std::ios::beg);
+ 	file.read((char *)wordbuffer,4);
+ 	if (file.gcount()!=4)
+ 		return SourceFile;
+@@ -104,11 +104,11 @@
+ 	int numsources=get_u32(wordbuffer);
+ 	if (aIndex >= numsources)
+ 		return OutOfRange;
+-	file.seekg(aIndex*4,ios::cur);
++	file.seekg(aIndex*4,std::ios::cur);
+ 	file.read((char *)wordbuffer,4);
+ 	if (file.gcount()!=4)
+ 		return SourceFile;
+-	file.seekg(get_u32(wordbuffer),ios::beg);
++	file.seekg(get_u32(wordbuffer),std::ios::beg);
+ 	int ret = DoLoadFile(file);
+ 	file.close();
+ 	return ret;
+@@ -116,7 +116,7 @@
+ 
+ int EpocLoader::LoadRom(char* aFileName,int aIndex)
+ 	{
+-	fstream file(aFileName,ios::in|ios::binary);
++	std::fstream file(aFileName,std::ios::in|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		return Files;
+ 
+@@ -131,17 +131,17 @@
+ 		return SourceFile;
+ 	if (aIndex>=wordbuffer)
+ 		return OutOfRange;
+-	file.seekg(aIndex*4,ios::cur);
++	file.seekg(aIndex*4,std::ios::cur);
+ 	file.read((char *)&wordbuffer,4);
+ 	if (file.gcount()!=4)
+ 		return SourceFile;
+-	file.seekg(wordbuffer,ios::beg);
++	file.seekg(wordbuffer,std::ios::beg);
+ 	int ret=DoLoadRom(file);
+ 	file.close();
+ 	return ret;
+ 	}
+ 
+-int EpocLoader::DoLoadFile(fstream& aFile)
++int EpocLoader::DoLoadFile(std::fstream& aFile)
+ 	{
+ 	unsigned long size = sizeof(SEpocBitmapHeader);
+ 	unsigned char epocbmhdr[size];
+@@ -208,7 +208,7 @@
+ 	return NoError;
+ 	}
+ 
+-int EpocLoader::DoLoadRom(fstream& aFile)
++int EpocLoader::DoLoadRom(std::fstream& aFile)
+ 	{
+ 	Bitmap bmp;
+ 	unsigned long size=sizeof(Bitmap);
+@@ -485,7 +485,7 @@
+ 			}
+ 		}
+ 
+-	fstream file(aFileName,ios::out|ios::binary);
++	std::fstream file(aFileName,std::ios::out|std::ios::binary);
+ 	if (file.is_open()==0)
+ 		{
+ 		delete bmpBits;
+diff -Naur sdk2unix-1.9/helpers/makesis-2.0.0/src/stub.cpp sdk2unix-1.9-new/helpers/makesis-2.0.0/src/stub.cpp
+--- sdk2unix-1.9/helpers/makesis-2.0.0/src/stub.cpp	2003-12-29 22:37:41.000000000 +0000
++++ sdk2unix-1.9-new/helpers/makesis-2.0.0/src/stub.cpp	2021-02-16 22:51:33.574498169 +0000
+@@ -40,7 +40,7 @@
+ {
+ 	(void)attributes;
+ 
+-	int fd = -1;
++	long long fd = -1;
+ 
+ 	if(creation == OPEN_EXISTING) {
+ 		fd = open(filename, O_RDONLY);
+@@ -68,7 +68,7 @@
+ BOOL ReadFile(HANDLE hFile, LPVOID buffer, DWORD bytesToRead,
+ 	      LPDWORD bytesRead, void *)
+ {
+-	int fd = (int)hFile;
++	long long fd = (long long)hFile;
+ 
+ 	const int size = read(fd, buffer, bytesToRead);
+ 
+@@ -84,13 +84,13 @@
+ 
+ BOOL CloseHandle(HANDLE fd)
+ {
+-	return close((int)fd) == 0;
++	return close((long long)fd) == 0;
+ }
+ 
+ 
+ DWORD WINAPI GetFileSize(HANDLE h, LPDWORD)
+ {
+-	int fd = (int)h;
++	long long fd = (long long)h;
+ 	int ret = 0;
+ 
+ 	struct stat s;
+@@ -167,7 +167,7 @@
+ 	       LPCVOID buffer, DWORD bytesToWrite,
+ 	       LPDWORD bytesWritten, void*)
+ {
+-	int fd = (int)hFile;
++	long long fd = (long long)hFile;
+ 
+ 	ssize_t ret = write(fd, buffer, bytesToWrite);
+ 	if(ret == -1) {
+@@ -188,7 +188,7 @@
+ {
+   (void)highword;
+ 
+-  int fd = (int)hFile;
++  long long fd = (long long)hFile;
+   off_t off = 0;
+ 
+   if(method == FILE_BEGIN)
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/e32uid/Makefile sdk2unix-1.9-new/helpers/petran-1.1.0/e32uid/Makefile
+--- sdk2unix-1.9/helpers/petran-1.1.0/e32uid/Makefile	2005-01-31 13:36:07.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/e32uid/Makefile	2021-02-16 23:52:01.867111778 +0000
+@@ -3,9 +3,9 @@
+ #
+ 
+ GCC_VERSION=
+-CFLAGS+=-Wall -gstabs+
++CFLAGS+=-Wall -gstabs+ -m32
+ CFLAGS+=-I../inc
+-LFLAGS=
++LFLAGS=-m32
+ DEPS=\
+ 	../inc/e32uid.h \
+ 	../inc/e32std.h
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/host/h_utl.cpp sdk2unix-1.9-new/helpers/petran-1.1.0/host/h_utl.cpp
+--- sdk2unix-1.9/helpers/petran-1.1.0/host/h_utl.cpp	2005-01-31 13:33:36.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/host/h_utl.cpp	2021-02-16 23:46:54.714132330 +0000
+@@ -57,44 +57,44 @@
+ 	switch (aType)
+ 		{
+ 	case EAlways:
+-		cout << iText;
++		std::cout << iText;
+ 		iLogFile << iText;
+ 		break;
+ 	case EScreen:
+-		cout << iText;
++		std::cout << iText;
+ 		break;
+ 	case ELog:
+ 		if (iVerbose)
+-			cout << iText;
++			std::cout << iText;
+ 		iLogFile << iText;
+ 		break;
+ 	case EWarning:
+-		cerr << "WARNING: " << iText;
++		std::cerr << "WARNING: " << iText;
+ 		iLogFile << "WARNING: "<<iText;
+ 		break;
+ 	case EError:
+-		cerr << "ERROR: " << iText;
++		std::cerr << "ERROR: " << iText;
+ 		iLogFile << "ERROR: " << iText;
+ 		r=KErrGeneral;
+ 		break;
+ 	case EPeError:
+ 		if (PVerbose)
+ 			{
+-			cerr << "ERROR: " << iText;
++			std::cerr << "ERROR: " << iText;
+ 			iLogFile << "ERROR: " << iText;
+ 			}
+ 		r=KErrGeneral;
+ 		break;
+ 	case ESevereError:
+-		cerr << "ERROR: " << iText;
++		std::cerr << "ERROR: " << iText;
+ 		iLogFile << "ERROR: " << iText;
+ 		r=KErrGeneral;
+ 		break;
+ 	default:
+-		cerr << "ERROR: Invalid print type" << endl;
++		std::cerr << "ERROR: Invalid print type" << std::endl;
+ 		r=KErrGeneral;
+ 		}
+-	cout.flush();
++	std::cout.flush();
+ 	iLogFile.flush();
+ 	return r;
+     }
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/inc/e32image.h sdk2unix-1.9-new/helpers/petran-1.1.0/inc/e32image.h
+--- sdk2unix-1.9/helpers/petran-1.1.0/inc/e32image.h	2003-12-21 15:44:08.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/inc/e32image.h	2021-02-16 23:39:12.336689248 +0000
+@@ -6,7 +6,7 @@
+ #ifndef __E32IMAGE_H__
+ #define __E32IMAGE_H__
+ 
+-#include <fstream.h>
++#include <fstream>
+ #include <e32std.h>
+ #include "pe_defs.h"
+ #include "pe_file.h"
+@@ -144,6 +144,6 @@
+ 	TUint iConstOffset;
+ 	TUint iCrtOffset;
+ 	};
+-ofstream &operator<<(ofstream &os, const E32ImageFile &aImage);
+-ifstream &operator>>(ifstream &is, E32ImageFile &aImage);
++std::ofstream &operator<<(std::ofstream &os, const E32ImageFile &aImage);
++std::ifstream &operator>>(std::ifstream &is, E32ImageFile &aImage);
+ #endif
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/inc/h_utl.h sdk2unix-1.9-new/helpers/petran-1.1.0/inc/h_utl.h
+--- sdk2unix-1.9/helpers/petran-1.1.0/inc/h_utl.h	2005-01-31 13:12:00.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/inc/h_utl.h	2021-02-16 23:47:41.950282212 +0000
+@@ -7,14 +7,15 @@
+ #define __H_UTL_H__
+ //
+ #include <stdio.h>
+-#include <iostream.h>
++#include <iostream>
+ #if __GNUC__ >= 3
+ #include <sstream>
+ #define istrstream std::istringstream
+ #else
+ #include <strstream.h>
+ #endif
+-#include <fstream.h>
++#include <fstream>
++#include <cstring>
+ #include <e32std.h>
+ 
+ #define ALIGN4K(a) ((a+0xfff)&0xfffff000)
+@@ -68,7 +69,7 @@
+ 	TText iText[KMaxStringLength];
+ 	TBool iVerbose;
+ private:
+-	ofstream iLogFile;
++	std::ofstream iLogFile;
+ 	};
+ //
+ extern HPrint H;
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/pefile/pe_img.cpp sdk2unix-1.9-new/helpers/petran-1.1.0/pefile/pe_img.cpp
+--- sdk2unix-1.9/helpers/petran-1.1.0/pefile/pe_img.cpp	2003-12-21 15:44:08.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/pefile/pe_img.cpp	2021-02-16 23:48:02.778348396 +0000
+@@ -7,7 +7,7 @@
+ #include <string.h>
+ #include <e32image.h>
+ #include <h_utl.h>
+-#include <fstream.h>
++#include <fstream>
+ 
+ //
+ // E32 Image files
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/pefile/pe_io.cpp sdk2unix-1.9-new/helpers/petran-1.1.0/pefile/pe_io.cpp
+--- sdk2unix-1.9/helpers/petran-1.1.0/pefile/pe_io.cpp	2003-12-21 15:44:08.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/pefile/pe_io.cpp	2021-02-16 23:48:49.546497224 +0000
+@@ -3,7 +3,7 @@
+ // Copyright (c) 1996-1999 Symbian Ltd.  All rights reserved.
+ //
+ 
+-#include <fstream.h>
++#include <fstream>
+ #include <e32image.h>
+ #include <h_utl.h>
+ #include <sys/types.h>
+@@ -13,7 +13,7 @@
+ 
+ #include <string.h>
+ 
+-ofstream &operator<<(ofstream &os, const E32ImageFile &aImage)
++std::ofstream &operator<<(std::ofstream &os, const E32ImageFile &aImage)
+ //
+ // Output an E32ImageFile
+ //
+@@ -23,7 +23,7 @@
+ 	return os;
+ 	}
+ 
+-ifstream &operator>>(ifstream &is, E32ImageFile &aImage)
++std::ifstream &operator>>(std::ifstream &is, E32ImageFile &aImage)
+ //
+ // Input an E32ImageFile
+ //
+@@ -38,7 +38,7 @@
+ TInt E32ImageFile::IsE32ImageFile(char *aFileName)
+ 	{
+ 
+-	ifstream ifile(aFileName, ios::in|ios::binary);
++	std::ifstream ifile(aFileName, std::ios::in|std::ios::binary);
+ 	if(!ifile.is_open())
+ 		return FALSE;
+ 	E32ImageHeader h;
+@@ -62,7 +62,7 @@
+ 		return 1;
+ 		}
+ 	Adjust(s.st_size);
+-	ifstream ifile((char *)aFileName, ios::in|ios::binary);
++	std::ifstream ifile((char *)aFileName, std::ios::in|std::ios::binary);
+ 	if(!ifile.is_open())
+ 		{
+ 		Print(EError,"Cannot open %s for input.\n",aFileName);
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/petran/Makefile sdk2unix-1.9-new/helpers/petran-1.1.0/petran/Makefile
+--- sdk2unix-1.9/helpers/petran-1.1.0/petran/Makefile	2005-06-07 09:51:29.000000000 +0100
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/petran/Makefile	2021-02-16 23:51:09.138942927 +0000
+@@ -4,9 +4,9 @@
+ 
+ GCC_VERSION=-2.95
+ GCC_VERSION=
+-CFLAGS+=-Wall -gstabs+ -Wno-deprecated -g
++CFLAGS+=-Wall -gstabs+ -Wno-deprecated -g -m32
+ CFLAGS+=-I../inc
+-LFLAGS=
++LFLAGS=-m32
+ DEPS=\
+ 	../inc/pe_defs.h \
+ 	../inc/e32def.h \
+diff -Naur sdk2unix-1.9/helpers/petran-1.1.0/petran/petran.cpp sdk2unix-1.9-new/helpers/petran-1.1.0/petran/petran.cpp
+--- sdk2unix-1.9/helpers/petran-1.1.0/petran/petran.cpp	2005-01-31 13:17:18.000000000 +0000
++++ sdk2unix-1.9-new/helpers/petran-1.1.0/petran/petran.cpp	2021-02-16 23:45:42.785904722 +0000
+@@ -84,7 +84,7 @@
+ 		else
+ 			f.SetFixedAddress(gFixedAddress);
+ 		}
+-	ofstream ofile(ofilename, ios::binary);
++	std::ofstream ofile(ofilename, std::ios::binary);
+ 	if (!ofile)
+ 		{
+ 		Print(EError,"Cannot open %s for output.\n",ofilename);
+@@ -113,7 +113,7 @@
+ 
+ 	f.Adjust(s.st_size);
+ 
+-	ifstream ifile(ifilename, ios::in|ios::binary);
++	std::ifstream ifile(ifilename, std::ios::in|std::ios::binary);
+ 	if(!ifile.is_open())
+ 		{
+ 		Print(EError,"Cannot open %s for input.\n",ifilename);
+@@ -142,7 +142,7 @@
+ 
+ 	f.Adjust(fsize);
+ 
+-	ifstream ifile(ifilename, ios::in|ios::binary);
++	std::ifstream ifile(ifilename, std::ios::in|std::ios::binary);
+ 	if(!ifile.is_open())
+ 		{
+ 		Print(EError,"Cannot open %s for input.\n",ifilename);
+@@ -185,7 +185,7 @@
+ 		else
+ 			f.SetFixedAddress(gFixedAddress);
+ 		}
+-	ofstream ofile(ifilename, ios::binary);
++	std::ofstream ofile(ifilename, std::ios::binary);
+ 	if (!ofile)
+ 		{
+ 		Print(EError,"Cannot open %s for output.\n",ifilename);
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/astring.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/astring.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/astring.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/astring.h	2021-02-16 22:54:41.112746647 +0000
+@@ -6,7 +6,7 @@
+ #ifndef __ASTRING_H__
+ #define __ASTRING_H__
+ 
+-#include <iostream.h>
++#include <iostream>
+ #include "array.h"
+ 
+ 
+@@ -15,7 +15,7 @@
+ 
+ class String : public ArrayItem
+ 	{
+-	friend ostream& operator<< ( ostream& os, const String & a);
++	friend std::ostream& operator<< ( std::ostream& os, const String & a);
+ 	friend class NumericValue;
+ 	friend class RCBinaryStream;
+ public:
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/datatype.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/datatype.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/datatype.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/datatype.h	2021-02-16 22:55:31.697261060 +0000
+@@ -24,7 +24,7 @@
+ 	const String& GetName() const;
+ 	DataType GetElementType() const;
+ 	unsigned short GetSize() const;
+-	friend ostream& operator<<(ostream& os,RCType& r);
++	friend std::ostream& operator<<(std::ostream& os,RCType& r);
+ private:
+ 	DataType iElementType;
+ 	String iName;
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/indextab.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/indextab.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/indextab.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/indextab.h	2021-02-16 23:08:50.118576097 +0000
+@@ -3,7 +3,7 @@
+ // Copyright (c) 1997-1999 Symbian Ltd.  All rights reserved.
+ //
+ 
+-#include <iostream.h>
++#include <iostream>
+ #include "rcbinstr.h"
+ #include "array.h"
+ #include "resource.h"
+@@ -11,7 +11,7 @@
+ 
+ class IndexTableItem : public ArrayItem
+ 	{
+-	friend ostream& operator<<(ostream & os,const IndexTableItem& o);
++	friend std::ostream& operator<<(std::ostream & os,const IndexTableItem& o);
+ 	friend RCBinaryStream& operator<<(RCBinaryStream & os,const IndexTableItem& o);
+ public:
+ 	IndexTableItem(ResourceHeader* aResource);
+@@ -25,7 +25,7 @@
+ 
+ class IndexTable : public Array
+ 	{
+-	friend ostream& operator<<(ostream& os,const IndexTable& o);
++	friend std::ostream& operator<<(std::ostream& os,const IndexTable& o);
+ 	friend RCBinaryStream& operator<<(RCBinaryStream& os,const IndexTable& o);
+ public:
+ 	IndexTable();
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/linkarra.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/linkarra.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/linkarra.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/linkarra.h	2021-02-16 23:09:07.954660365 +0000
+@@ -14,7 +14,7 @@
+ public:
+ 	LinkItem(ResourceDataStream& aStream,const String& aResourceName,const String& aFileName,int aLineNumber);
+ 	virtual void OverwriteLink(RCBinaryStream& os) const=0;
+-	virtual ostream& StreamOut(ostream& os)=0;
++	virtual std::ostream& StreamOut(std::ostream& os)=0;
+ public:
+ 	String iResourceName;	// Name of resource to which link points.
+ 	unsigned long iStreamPosition;
+@@ -24,7 +24,7 @@
+ 
+ class LinkArray : public Array
+ 	{
+-	friend ostream& operator<<(ostream& os,LinkArray& o);
++	friend std::ostream& operator<<(std::ostream& os,LinkArray& o);
+ public:
+ 	LinkArray();
+ 	~LinkArray();
+@@ -39,7 +39,7 @@
+ public:
+ 	WordLink(ResourceDataStream& aStream,const String& aResourceName,const String& aFileName,int aLineNumber);
+ 	virtual void OverwriteLink(RCBinaryStream& os) const;
+-	virtual ostream& StreamOut(ostream& os);
++	virtual std::ostream& StreamOut(std::ostream& os);
+ 	static int NumberOfBytesOccupiesInStream();
+ 	};
+ 
+@@ -48,7 +48,7 @@
+ public:
+ 	LongLink(ResourceDataStream& aStream,const String& aResourceName,const String& aFileName,int aLineNumber);
+ 	virtual void OverwriteLink(RCBinaryStream& os) const;
+-	virtual ostream& StreamOut(ostream& os);
++	virtual std::ostream& StreamOut(std::ostream& os);
+ 	static int NumberOfBytesOccupiesInStream();
+ 	};
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/nameidma.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/nameidma.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/nameidma.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/nameidma.h	2021-02-16 23:07:32.182197617 +0000
+@@ -10,7 +10,7 @@
+ 
+ class NameIdItem : public ArrayItem
+ 	{
+-	friend ostream& operator<<(ostream & os, NameIdItem & o);
++	friend std::ostream& operator<<(std::ostream & os, NameIdItem & o);
+ public:
+ 	NameIdItem(String aNameToSet,unsigned long aIdToSet);
+ public:
+@@ -20,7 +20,7 @@
+ 
+ class NameIdMap : public Array
+ 	{
+-	friend ostream& operator<<(ostream & os,NameIdMap& aMap);
++	friend std::ostream& operator<<(std::ostream & os,NameIdMap& aMap);
+ public:
+ 	NameIdMap();
+ 	~NameIdMap();
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/rcbinstr.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/rcbinstr.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/rcbinstr.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/rcbinstr.h	2021-02-16 23:18:22.164983972 +0000
+@@ -10,7 +10,7 @@
+ #pragma warning( disable : 4710 )	// function not inlined
+ #endif
+ 
+-#include <fstream.h>
++#include <fstream>
+ #include "astring.h"
+ #include "numval.h"
+ #include "array.h"
+@@ -30,7 +30,7 @@
+ 	unsigned long GetPosition();
+ 	void SetPosition(unsigned long NewPosition);
+ private:
+-	ofstream iOs;
++	std::ofstream iOs;
+ 	};
+ 
+ class ResourceDataStream // this class knows about resources that contain compressed Unicode - i.e. that each run of alternating compressed-Unicode and other-stuff needs to be preceded by a 1-2 byte run-length
+@@ -73,11 +73,11 @@
+ 	class Mark : public ArrayItem
+ 		{
+ 	public:
+-		inline Mark(int aBufferPosition, MarkType aMarkType, unsigned int aOtherData) :iBufferPosition(aBufferPosition), iMarkType(aMarkType), iOtherData(aOtherData) {}
++		inline Mark(int aBufferPosition, MarkType aMarkType, unsigned long long aOtherData) :iBufferPosition(aBufferPosition), iMarkType(aMarkType), iOtherData(aOtherData) {}
+ 	public:
+ 		int iBufferPosition;
+ 		MarkType iMarkType;
+-		unsigned int iOtherData;
++		unsigned long long iOtherData;
+ 		};
+ 	class ArrayOfMarks : public Array
+ 		{
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/resource.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/resource.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/resource.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/resource.h	2021-02-16 23:08:20.994436683 +0000
+@@ -20,7 +20,7 @@
+ 
+ class ResourceItemArray : public Array, public StackItem, public ArrayItem
+ 	{
+-	friend ostream & operator<< ( ostream & os, ResourceItemArray & o);
++	friend std::ostream & operator<< ( std::ostream & os, ResourceItemArray & o);
+ public:
+ 	ResourceItemArray();
+ 	~ResourceItemArray();
+@@ -48,7 +48,7 @@
+ 
+ class ResourceItemArrayArray : public Array
+ 	{
+-	friend ostream & operator<< ( ostream & os, ResourceItemArrayArray & o);
++	friend std::ostream & operator<< ( std::ostream & os, ResourceItemArrayArray & o);
+ public:
+ 	ResourceItemArrayArray();
+ 	~ResourceItemArrayArray();
+@@ -70,13 +70,13 @@
+ 
+ class ResourceHeader : public ArrayItem
+ 	{
+-	friend ostream & operator<< ( ostream & os, ResourceHeader & o);
++	friend std::ostream & operator<< ( std::ostream & os, ResourceHeader & o);
+ public:
+ 	ResourceHeader( String LabelToSet);
+ 	ResourceHeader();
+ 	~ResourceHeader();
+ 	void AddDefault();
+-	void Write( ostream &os);
++	void Write( std::ostream &os);
+ 	void SetResourceId(NameIdMap& aMap, unsigned long aId, int aFormatAsHex);
+ 	void StreamOut(RCBinaryStream& aStream, int& aSizeOfLargestResourceWhenUncompressed);
+ 	inline bool ContainsCompressedUnicode() const {return iContainsCompressedUnicode;}
+@@ -97,7 +97,7 @@
+ 	virtual ResourceItemArray * GetRIA() = 0;
+ 	virtual void Set( const String & ValueToSet) = 0;
+ 	virtual void Set( const StringArray & ValuesToSet) = 0;
+-	virtual ostream & StreamOut ( ostream & os) = 0;
++	virtual std::ostream & StreamOut ( std::ostream & os) = 0;
+ 	virtual void StreamOut(ResourceDataStream& aStream) const = 0;
+ 	virtual void AddDefault() = 0;
+ 	virtual void SetSRLink( unsigned long SRLinkToSet) = 0;	
+@@ -120,8 +120,8 @@
+ 	SimpleResourceItem(SimpleStructItem*);
+ 	void Set(const String& aValueToSet);
+ 	void Set(const StringArray& aValuesToSet);
+-	virtual ostream& StreamOut(ostream& os);
+-	friend ostream& operator<<(ostream& os,SimpleResourceItem & o);
++	virtual std::ostream& StreamOut(std::ostream& os);
++	friend std::ostream& operator<<(std::ostream& os,SimpleResourceItem & o);
+ 	virtual void StreamOut(ResourceDataStream& aStream) const;
+ 	virtual void AddDefault();
+ 	virtual void SetSRLink(unsigned long aSRLinkToSet);
+@@ -139,13 +139,13 @@
+ 
+ class ArrayResourceItem : public ResourceItem
+ 	{
+-	friend ostream& operator<<(ostream& os,ArrayResourceItem& aItem);
++	friend std::ostream& operator<<(std::ostream& os,ArrayResourceItem& aItem);
+ public:
+ 	ArrayResourceItem(ArrayStructItem *);
+ 	~ArrayResourceItem();
+ 	void Set(const String& aValueToSet);
+ 	void Set(const StringArray& aValuesToSet);
+-	ostream & StreamOut(ostream& os);
++	std::ostream & StreamOut(std::ostream& os);
+ 	virtual void StreamOut(ResourceDataStream& aStream) const;
+ 	virtual void AddDefault();
+ 	virtual void SetSRLink(unsigned long aSRLinkToSet);
+@@ -165,8 +165,8 @@
+ 	StructTypeResourceItem(StructTypeStructItem*);
+ 	void Set(const String& ValueToSet);
+ 	void Set(const StringArray& ValuesToSet);
+-	ostream& StreamOut(ostream& os);
+-	friend ostream& operator<<(ostream& os,StructTypeResourceItem& o);
++	std::ostream& StreamOut(std::ostream& os);
++	friend std::ostream& operator<<(std::ostream& os,StructTypeResourceItem& o);
+ 	virtual void StreamOut(ResourceDataStream& aStream) const;
+ 	virtual void AddDefault();
+ 	virtual void SetSRLink(unsigned long aSRLinkToSet);
+@@ -180,13 +180,13 @@
+ 
+ class StructArrayResourceItem : public ResourceItem
+ 	{
+-	friend ostream& operator<<(ostream& os,StructArrayResourceItem& aItem);
++	friend std::ostream& operator<<(std::ostream& os,StructArrayResourceItem& aItem);
+ public:
+ 	StructArrayResourceItem(StructArrayStructItem*);
+ 	void Set(const String& ValueToSet);
+ 	void Set(const StringArray& ValuesToSet);
+ 	ResourceItemArray* GetRIA();
+-	ostream& StreamOut(ostream& os);
++	std::ostream& StreamOut(std::ostream& os);
+ 	virtual void StreamOut(ResourceDataStream& aStream) const;
+ 	virtual void AddDefault();
+ 	virtual void SetSRLink(unsigned long SRLinkToSet);
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/stringar.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/stringar.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/stringar.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/stringar.h	2021-02-16 23:02:19.192454872 +0000
+@@ -11,7 +11,7 @@
+ 
+ class StringArray : public Array
+ 	{
+-	friend ostream& operator<<(ostream & os, StringArray & s);
++	friend std::ostream& operator<<(std::ostream & os, StringArray & s);
+ 	friend RCBinaryStream& operator<<(RCBinaryStream & os, StringArray & s);
+ public:
+ 	StringArray();
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/inc/structst.h sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/structst.h
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/inc/structst.h	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/inc/structst.h	2021-02-16 23:07:57.254321283 +0000
+@@ -6,7 +6,7 @@
+ #ifndef __STRUCTST_H__
+ #define __STRUCTST_H__
+ 
+-#include <iostream.h>
++#include <iostream>
+ #include "stringar.h"
+ #include "datatype.h"
+ 
+@@ -18,7 +18,7 @@
+ 	{
+ public:
+ 	virtual ResourceItem * NewResourceItem() = 0;
+-	virtual ostream& StreamOut ( ostream & os) = 0;
++	virtual std::ostream& StreamOut ( std::ostream & os) = 0;
+ protected:
+ 	StructItem( String LabelToSet);
+ 	virtual ~StructItem();
+@@ -31,12 +31,12 @@
+ 
+ class SimpleStructItem : public StructItem	// e.g. WORD a = 5
+ 	{
+-	friend ostream& operator<< ( ostream & os, SimpleStructItem & o);
++	friend std::ostream& operator<< ( std::ostream & os, SimpleStructItem & o);
+ public:
+ 	SimpleStructItem(DataType aItemTypeToSet,String aLabelToSet);
+ 	SimpleStructItem(DataType aItemTypeToSet,String aLabelToSet,String aMaxLength);
+ 	ResourceItem * NewResourceItem();
+-	ostream& StreamOut ( ostream & os);
++	std::ostream& StreamOut ( std::ostream & os);
+ 	virtual ~SimpleStructItem();
+ 	SimpleStructItem( SimpleStructItem & Source);
+ 	SimpleStructItem& operator=( SimpleStructItem & Source);
+@@ -50,12 +50,12 @@
+ 
+ class ArrayStructItem : public StructItem	// e.g. WORD a[] = {1,2,3}
+ 	{
+-	friend ostream& operator<< ( ostream & os, ArrayStructItem & o);
++	friend std::ostream& operator<< ( std::ostream & os, ArrayStructItem & o);
+ public:
+ 	ArrayStructItem( DataType ItemTypeToSet, String LabelToSet);
+ 	virtual ~ArrayStructItem();
+ 	ResourceItem * NewResourceItem();
+-	ostream& StreamOut ( ostream & os);
++	std::ostream& StreamOut ( std::ostream & os);
+ public:
+ 	DataType iItemType;
+ 	StringArray iDefaults;
+@@ -67,23 +67,23 @@
+ 
+ class StructTypeStructItem : public StructItem	// e.g. STRUCT a
+ 	{
+-	friend ostream& operator<< ( ostream & os, StructTypeStructItem & o);
++	friend std::ostream& operator<< ( std::ostream & os, StructTypeStructItem & o);
+ public:
+ 	StructTypeStructItem( String LabelToSet);
+ 	ResourceItem * NewResourceItem();
+-	ostream& StreamOut ( ostream & os);
++	std::ostream& StreamOut ( std::ostream & os);
+ 	};
+ 
+ // StructArrayStructItem
+ 
+ class StructArrayStructItem : public StructItem // e.g. STRUCT a[]
+ 	{
+-	friend ostream& operator<< ( ostream & os, StructArrayStructItem & o);
++	friend std::ostream& operator<< ( std::ostream & os, StructArrayStructItem & o);
+ public:
+ 	StructArrayStructItem( String LabelToSet);
+ 	StructArrayStructItem( String LabelToSet, String SizeToSet);
+ 	ResourceItem * NewResourceItem();
+-	ostream& StreamOut ( ostream & os);
++	std::ostream& StreamOut ( std::ostream & os);
+ 	virtual ~StructArrayStructItem();
+ public:
+ 	DataType iLenType;
+@@ -94,7 +94,7 @@
+ 
+ class StructItemArray : public Array
+ 	{
+-	friend ostream& operator<< ( ostream & os, StructItemArray & o);
++	friend std::ostream& operator<< ( std::ostream & os, StructItemArray & o);
+ public:
+ 	StructItemArray();
+ 	~StructItemArray();
+@@ -114,7 +114,7 @@
+ 
+ class StructHeader : public ArrayItem
+ 	{
+-	friend ostream& operator<< ( ostream & os, StructHeader & o);
++	friend std::ostream& operator<< ( std::ostream & os, StructHeader & o);
+ public:
+ 	StructHeader( String LabelToSet);
+ 	StructHeader( String LabelToSet, DataType LenTypeToSet);
+@@ -128,7 +128,7 @@
+ 
+ class StructHeaderArray : public Array
+ 	{
+-	friend ostream& operator<< ( ostream & os, StructHeaderArray & o);
++	friend std::ostream& operator<< ( std::ostream & os, StructHeaderArray & o);
+ public:
+ 	StructHeaderArray();
+ 	~StructHeaderArray();
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/astring.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/astring.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/astring.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/astring.cpp	2021-02-16 22:55:04.916992947 +0000
+@@ -3,7 +3,7 @@
+ // Copyright (c) 1997-1999 Symbian Ltd.  All rights reserved.
+ //
+ 
+-#include <iostream.h>
++#include <iostream>
+ #include <stdio.h>
+ #include <string.h>
+ #include <assert.h>
+@@ -112,7 +112,7 @@
+ 	return iLength;
+ 	}
+ 
+-ostream& operator<< ( ostream& os, const String & a)
++std::ostream& operator<< ( std::ostream& os, const String & a)
+ 	{
+ 	return ( os << ( ( a.iLength <= 0) ? "<empty>" : a.iRep) );
+ 	}
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/derived/rcomp.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/derived/rcomp.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/derived/rcomp.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/derived/rcomp.cpp	2021-02-16 23:05:14.545481514 +0000
+@@ -16,7 +16,7 @@
+ 
+ #include <assert.h>
+ #include <ctype.h>
+-#include <fstream.h>
++#include <fstream>
+ #include "resource.h"
+ #include "rcstack.h"
+ #include "rcompl.hpp"
+@@ -900,18 +900,18 @@
+ 		
+ case YYr1: {	/* source :  statement-list */
+ #line 111 "../rcomp.y"
+-	if(verbose)	{	MOFF; cout << Divider << "\n" << Divider << endl; MON; }
++	if(verbose)	{	MOFF; std::cout << Divider << "\n" << Divider << std::endl; MON; }
+ 										
+ } break;
+ 
+ case YYr11: {	/* struct-statement :  struct-statement-start struct-item-list '}' */
+ #line 136 "../rcomp.y"
+-	if(verbose) { MOFF; cout << Divider << "\n" << * pSH << Divider << endl; MON;}	
++	if(verbose) { MOFF; std::cout << Divider << "\n" << * pSH << Divider << std::endl; MON;}	
+ } break;
+ 
+ case YYr12: {	/* struct-statement-start :  L_STRUCT L_LABEL '{' */
+ #line 139 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-statement-start                     " << yypvt[-1].Value << endl; MON;}
++	if(verbose) {	MOFF;std::cout << "struct-statement-start                     " << yypvt[-1].Value << std::endl; MON;}
+ 											pSH = new StructHeader(yypvt[-1].Value);
+ 											REGISTER_LINE;
+ 											pG->SHA.Add(pSH);
+@@ -920,7 +920,7 @@
+ 
+ case YYr13: {	/* struct-statement-start :  L_STRUCT L_LABEL len-declaration '{' */
+ #line 145 "../rcomp.y"
+-	if(verbose) {	RCTypeArray Types; MOFF;cout << "struct-statement-start                     " << yypvt[-2].Value << " " << Types.GetName(yypvt[-1].Id) << endl; MON;}
++	if(verbose) {	RCTypeArray Types; MOFF;std::cout << "struct-statement-start                     " << yypvt[-2].Value << " " << Types.GetName(yypvt[-1].Id) << std::endl; MON;}
+ 											pSH = new StructHeader(yypvt[-2].Value, yypvt[-1].Id);
+ 											REGISTER_LINE;
+ 											pG->SHA.Add(pSH);
+@@ -929,7 +929,7 @@
+ 
+ case YYr14: {	/* struct-statement-start :  L_STRUCT L_LABEL L_LEN '{' */
+ #line 151 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-statement-start                     " << yypvt[-2].Value << " (WORD)" << endl; MON;}
++	if(verbose) {	MOFF;std::cout << "struct-statement-start                     " << yypvt[-2].Value << " (WORD)" << std::endl; MON;}
+ 											pSH = new StructHeader(yypvt[-2].Value, L_WORD);
+ 											REGISTER_LINE;
+ 											pG->SHA.Add(pSH);
+@@ -938,7 +938,7 @@
+ 
+ case YYr15: {	/* struct-item-list :  struct-item-list struct-item ';' */
+ #line 158 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-item-list                           Adding struct-item." << endl; MON;}
++	if(verbose) {	MOFF;std::cout << "struct-item-list                           Adding struct-item." << std::endl; MON;}
+ 											REGISTER_LINE;
+ 											pSH->iSIA.Add(yypvt[-1].pStructItem);
+ 										
+@@ -951,7 +951,7 @@
+ 
+ case YYr22: {	/* simple-struct-item :  simple-struct-item-start '(' natural-expression ')' */
+ #line 173 "../rcomp.y"
+-	if(verbose) { MOFF;cout << "    Limit: " << yypvt[-1].Value << endl; MON;}
++	if(verbose) { MOFF;std::cout << "    Limit: " << yypvt[-1].Value << std::endl; MON;}
+ 											yypvt[-3].pSimpleStructItem->iLengthLimit = yypvt[-1].Value;
+ 											yyval.pStructItem = yypvt[-3].pSimpleStructItem;
+ 										
+@@ -959,7 +959,7 @@
+ 
+ case YYr23: {	/* simple-struct-item :  simple-struct-item-start '=' simple-initialiser */
+ #line 178 "../rcomp.y"
+-	if(verbose) { MOFF;cout << "    Default: " << yypvt[0].Value << endl; MON;}
++	if(verbose) { MOFF;std::cout << "    Default: " << yypvt[0].Value << std::endl; MON;}
+ 											yypvt[-2].pSimpleStructItem->iDefault = yypvt[0].Value;
+ 											yyval.pStructItem = yypvt[-2].pSimpleStructItem;
+ 										
+@@ -967,7 +967,7 @@
+ 
+ case YYr24: {	/* simple-struct-item :  simple-struct-item-start '(' natural-expression ')' '=' string-expression */
+ #line 183 "../rcomp.y"
+-	if(verbose) { MOFF;cout << "    Limit: " << yypvt[-3].Value << ", Default: " << yypvt[0].Value << endl; MON;}
++	if(verbose) { MOFF;std::cout << "    Limit: " << yypvt[-3].Value << ", Default: " << yypvt[0].Value << std::endl; MON;}
+ 											NumericValue Limit(yypvt[-3].Value, L_LONG);
+ 											if(String(yypvt[0].Value).ExportLength(TargetCharacterSet,SourceCharacterSet) > Limit.GetULong() )
+ 											{
+@@ -985,7 +985,7 @@
+ #line 198 "../rcomp.y"
+ 	if(verbose) 
+ 											{			   RCTypeArray Types;
+-														   MOFF;cout << "simple-struct-item                         " << Types.GetName(yypvt[-1].Id) << " " << yypvt[0].Value << endl; MON;
++														   MOFF;std::cout << "simple-struct-item                         " << Types.GetName(yypvt[-1].Id) << " " << yypvt[0].Value << std::endl; MON;
+ 											}
+ 											yyval.pSimpleStructItem = new SimpleStructItem(yypvt[-1].Id,yypvt[0].Value); 
+ 											assert(yyval.pSimpleStructItem != NULL);
+@@ -996,7 +996,7 @@
+ #line 206 "../rcomp.y"
+ 	if(verbose) 
+ 											{			   RCTypeArray Types;
+-														   MOFF;cout << "simple-struct-item                         " << Types.GetName(yypvt[-4].Id) << " " << yypvt[0].Value << endl; MON;
++														   MOFF;std::cout << "simple-struct-item                         " << Types.GetName(yypvt[-4].Id) << " " << yypvt[0].Value << std::endl; MON;
+ 											}
+ 											String s(NumericValue::ltoa(yypvt[-2].NumInitialiser));
+ 											yyval.pSimpleStructItem = new SimpleStructItem(yypvt[-4].Id,yypvt[0].Value,s);
+@@ -1105,7 +1105,7 @@
+ 
+ case YYr44: {	/* array-struct-item :  array-struct-item-base '=' '{' simple-initialiser-list '}' */
+ #line 263 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "array-struct-item                          with simple-initialiser-list" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "array-struct-item                          with simple-initialiser-list" << std::endl;MON;}
+ 											yypvt[-4].pArrayStructItem->iDefaults = * yypvt[-1].pStringArray;
+ 											if(yypvt[-4].pArrayStructItem->iSize.Length() > 0)
+ 											{
+@@ -1124,14 +1124,14 @@
+ 
+ case YYr45: {	/* array-struct-item-base :  array-struct-item-start ']' */
+ #line 280 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "array-struct-item-base                     with no size" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "array-struct-item-base                     with no size" << std::endl;MON;}
+ 											yyval.pArrayStructItem =yypvt[-1].pArrayStructItem;
+ 										
+ } break;
+ 
+ case YYr46: {	/* array-struct-item-base :  array-struct-item-start natural-expression ']' */
+ #line 284 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "array-struct-item-base                     with size " << yypvt[-1].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "array-struct-item-base                     with size " << yypvt[-1].Value << std::endl;MON;}
+ 											yypvt[-2].pArrayStructItem->iSize = yypvt[-1].Value;
+ 											yyval.pArrayStructItem = yypvt[-2].pArrayStructItem;
+ 										
+@@ -1141,7 +1141,7 @@
+ #line 289 "../rcomp.y"
+ 	if(verbose) 
+ 												{		 	RCTypeArray Types;
+-														 	MOFF;cout << "array-struct-item-base                     with LenType " << Types.GetName(yypvt[-2].Id) << endl;MON;
++														 	MOFF;std::cout << "array-struct-item-base                     with LenType " << Types.GetName(yypvt[-2].Id) << std::endl;MON;
+ 												}
+ 											yypvt[-1].pArrayStructItem->iLenType = yypvt[-2].Id;
+ 											yyval.pArrayStructItem = yypvt[-1].pArrayStructItem;
+@@ -1152,7 +1152,7 @@
+ #line 297 "../rcomp.y"
+ 	if(verbose) 
+ 												{		 	RCTypeArray Types;
+-														 	MOFF;cout << "array-struct-item-base                     with size " << yypvt[-1].Value << " and LenType " << Types.GetName(yypvt[-3].Id) << endl;MON;
++														 	MOFF;std::cout << "array-struct-item-base                     with size " << yypvt[-1].Value << " and LenType " << Types.GetName(yypvt[-3].Id) << std::endl;MON;
+ 												}
+ 											yypvt[-2].pArrayStructItem->iLenType = yypvt[-3].Id;
+ 											yypvt[-2].pArrayStructItem->iSize = yypvt[-1].Value; 
+@@ -1164,7 +1164,7 @@
+ #line 307 "../rcomp.y"
+ 	if(verbose) 
+ 												{		 	RCTypeArray Types; 
+-														 	MOFF;cout << "array-struct-item-start                    " << Types.GetName(yypvt[-2].Id) << " " << yypvt[-1].Value << endl;MON;
++														 	MOFF;std::cout << "array-struct-item-start                    " << Types.GetName(yypvt[-2].Id) << " " << yypvt[-1].Value << std::endl;MON;
+ 												}
+ 											yyval.pArrayStructItem = new ArrayStructItem(yypvt[-2].Id, yypvt[-1].Value);
+ 										
+@@ -1182,7 +1182,7 @@
+ 
+ case YYr52: {	/* struct-type-struct-item :  L_STRUCT L_LABEL */
+ #line 319 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-type-struct-item                    " << yypvt[0].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-type-struct-item                    " << yypvt[0].Value << std::endl;MON;}
+ 											yyval.pStructItem = new StructTypeStructItem(yypvt[0].Value);
+ 										
+ } break;
+@@ -1194,21 +1194,21 @@
+ 
+ case YYr54: {	/* struct-array-struct-item :  L_LEN len-declaration struct-array-struct-item-base */
+ #line 326 "../rcomp.y"
+-	if(verbose) {	RCTypeArray Types; MOFF;cout << "struct-array-struct-item                   - Setting Size to " << Types.GetName(yypvt[-1].Id) << endl;MON;}
++	if(verbose) {	RCTypeArray Types; MOFF;std::cout << "struct-array-struct-item                   - Setting Size to " << Types.GetName(yypvt[-1].Id) << std::endl;MON;}
+ 											yypvt[0].pStructArrayStructItem->iLenType = yypvt[-1].Id; yyval.pStructItem = yypvt[0].pStructArrayStructItem;
+ 										
+ } break;
+ 
+ case YYr55: {	/* struct-array-struct-item-base :  L_STRUCT L_LABEL '[' ']' */
+ #line 331 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-struct-item-base              " << yypvt[-2].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-struct-item-base              " << yypvt[-2].Value << std::endl;MON;}
+ 											yyval.pStructArrayStructItem = new StructArrayStructItem(yypvt[-2].Value);
+ 										
+ } break;
+ 
+ case YYr56: {	/* struct-array-struct-item-base :  L_STRUCT L_LABEL '[' natural-expression ']' */
+ #line 335 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-struct-item-base              " << yypvt[-3].Value << " " << yypvt[-1].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-struct-item-base              " << yypvt[-3].Value << " " << yypvt[-1].Value << std::endl;MON;}
+ 											yyval.pStructArrayStructItem = new StructArrayStructItem(yypvt[-3].Value, yypvt[-1].Value);
+ 										
+ } break;
+@@ -1218,7 +1218,7 @@
+ 	
+ 	    pResourceHeader->AddDefault();
+ 	    CurrentId+=CurrentIdStep;
+-	    if(verbose) { MOFF;cout << "Resource ID "<< CurrentId << endl << Divider << "\n" << * pResourceHeader << Divider << endl;MON;}
++	    if(verbose) { MOFF;std::cout << "Resource ID "<< CurrentId << std::endl << Divider << "\n" << * pResourceHeader << Divider << std::endl;MON;}
+ 	    pResourceHeader->SetResourceId(*pResourceNameIds,CurrentId,FormatIdAsHex);
+ 	    pG->Index.Add(pResourceHeader);
+ 	    pResourceHeader = NULL;
+@@ -1228,7 +1228,7 @@
+ case YYr59: {	/* resource-statement-start :  L_LOCAL resource-statement-start-names */
+ #line 356 "../rcomp.y"
+ 	
+-	    if(verbose) { MOFF;cout << "resource-statement-start                   LOCAL" << endl;MON;}
++	    if(verbose) { MOFF;std::cout << "resource-statement-start                   LOCAL" << std::endl;MON;}
+ 		    assert(pResourceHeader != NULL);
+ 		    pResourceHeader->iLocal = 1;
+ 	    
+@@ -1236,7 +1236,7 @@
+ 
+ case YYr61: {	/* resource-statement-start-names :  L_RESOURCE L_LABEL L_LABEL */
+ #line 364 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "resource-statement-start-names             " << yypvt[-1].Value << " " << yypvt[0].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "resource-statement-start-names             " << yypvt[-1].Value << " " << yypvt[0].Value << std::endl;MON;}
+ 											assert(pResourceHeader == NULL);
+ 											pResourceHeader = new ResourceHeader(yypvt[0].Value);
+ 											pCurrentRIA = & (pResourceHeader->iRIA);
+@@ -1252,7 +1252,7 @@
+ 
+ case YYr62: {	/* resource-statement-start-names :  L_RESOURCE L_LABEL */
+ #line 376 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "resource-statement-start-names             " << yypvt[0].Value << " <Resource not named>" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "resource-statement-start-names             " << yypvt[0].Value << " <Resource not named>" << std::endl;MON;}
+ 											assert(pResourceHeader == NULL);
+ 											pResourceHeader = new ResourceHeader;
+ 											pCurrentRIA = & (pResourceHeader->iRIA);
+@@ -1263,7 +1263,7 @@
+ 
+ case YYr63: {	/* resource-item-list :  resource-item-list resource-item ';' */
+ #line 385 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "resource-item-list" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "resource-item-list" << std::endl;MON;}
+ } break;
+ 
+ case YYr64: {	/* resource-item-list :  resource-item-list error ';' */
+@@ -1273,7 +1273,7 @@
+ 
+ case YYr66: {	/* resource-item :  L_LABEL '=' simple-initialiser */
+ #line 390 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "resource-item                              " << yypvt[-2].Value << " " << yypvt[0].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "resource-item                              " << yypvt[-2].Value << " " << yypvt[0].Value << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											pCurrentRIA->Set(yypvt[-2].Value, yypvt[0].Value);
+ 										
+@@ -1283,7 +1283,7 @@
+ #line 400 "../rcomp.y"
+ 	
+ 	    if (verbose) 
+-		{ MOFF;cout << "resource-simple-array-item                 " << yypvt[-3].Value << endl;MON;} 
++		{ MOFF;std::cout << "resource-simple-array-item                 " << yypvt[-3].Value << std::endl;MON;} 
+ 	    
+ } break;
+ 
+@@ -1291,7 +1291,7 @@
+ #line 405 "../rcomp.y"
+ 	
+ 	    if (verbose) 
+-		{ MOFF;cout << "resource-simple-array-item                 " << yypvt[-4].Value << " with simple-initialiser-list" << endl;MON;}
++		{ MOFF;std::cout << "resource-simple-array-item                 " << yypvt[-4].Value << " with simple-initialiser-list" << std::endl;MON;}
+ 	    REGISTER_LINE;
+ 	    pCurrentRIA->Set(yypvt[-4].Value, * yypvt[-1].pStringArray);
+ 	    delete yypvt[-1].pStringArray;
+@@ -1300,14 +1300,14 @@
+ 
+ case YYr72: {	/* struct-resource-item :  struct-resource-item-start resource-item-list '}' */
+ #line 434 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-resource-item" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-resource-item" << std::endl;MON;}
+ 											pCurrentRIA = pG->RIAStack.Pop();
+ 										
+ } break;
+ 
+ case YYr73: {	/* struct-resource-item-start :  L_LABEL '=' L_LABEL '{' */
+ #line 439 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-resource-item-start                 " << yypvt[-3].Value << " " << yypvt[-1].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-resource-item-start                 " << yypvt[-3].Value << " " << yypvt[-1].Value << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											pCurrentRIA->Set(yypvt[-3].Value, yypvt[-1].Value);
+ 											pG->RIAStack.Push(pCurrentRIA);
+@@ -1317,7 +1317,7 @@
+ 
+ case YYr74: {	/* struct-array-resource-item :  struct-array-resource-item-start struct-array-resource-item-list-top '}' */
+ #line 448 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-resource-item" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-resource-item" << std::endl;MON;}
+ 											pG->SRIStack.Pop();
+ 										
+ } break;
+@@ -1329,7 +1329,7 @@
+ 
+ case YYr76: {	/* struct-array-resource-item-start :  L_LABEL '=' '{' L_LABEL '{' */
+ #line 455 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-resource-item-start           " << yypvt[-4].Value << " " << yypvt[-1].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-start           " << yypvt[-4].Value << " " << yypvt[-1].Value << std::endl;MON;}
+ 											ResourceItem * p = pCurrentRIA->Find(yypvt[-4].Value);
+ 											pG->SRIStack.Push(p);
+ 											REGISTER_LINE;
+@@ -1341,21 +1341,21 @@
+ 
+ case YYr80: {	/* struct-array-resource-item-list-top-start :  resource-item-list '}' */
+ #line 470 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-resource-item-list-top        " << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-list-top        " << std::endl;MON;}
+ 											pCurrentRIA = pG->RIAStack.Pop();
+ 										
+ } break;
+ 
+ case YYr83: {	/* struct-array-resource-item-list-item :  struct-array-resource-item-list-item-start resource-item-list '}' */
+ #line 480 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-resource-item-list-item       " << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-list-item       " << std::endl;MON;}
+ 											pCurrentRIA = pG->RIAStack.Pop();
+ 										
+ } break;
+ 
+ case YYr84: {	/* struct-array-resource-item-list-item-start :  L_LABEL '{' */
+ #line 485 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "struct-array-resource-item-list-item-start " << yypvt[-1].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-list-item-start " << yypvt[-1].Value << std::endl;MON;}
+ 											ResourceItem * p = pG->SRIStack.Peek();
+ 											REGISTER_LINE;
+ 											p->Set(yypvt[-1].Value);
+@@ -1403,7 +1403,7 @@
+ 
+ 	    if(verbose) 
+ 		{	
+-		MOFF;cout << "simple-initialiser-list                    - single string " << yypvt[0].Value << endl;MON;
++		MOFF;std::cout << "simple-initialiser-list                    - single string " << yypvt[0].Value << std::endl;MON;
+ 		}
+ 	    yyval.pStringArray = new StringArray;
+ 	    yyval.pStringArray->Add(new String(yypvt[0].Value) );
+@@ -1412,7 +1412,7 @@
+ 
+ case YYr91: {	/* simple-initialiser-list :  simple-initialiser-list ',' simple-initialiser */
+ #line 543 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "simple-initialiser-list                    - part of list " << yypvt[0].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "simple-initialiser-list                    - part of list " << yypvt[0].Value << std::endl;MON;}
+ 											assert(yypvt[-2].pStringArray != NULL);
+ 											yypvt[-2].pStringArray->Add(new String(yypvt[0].Value ) );
+ 											yyval.pStringArray = yypvt[-2].pStringArray;
+@@ -1426,7 +1426,7 @@
+ 
+ case YYr93: {	/* natural-expression-numeric :  L_NUM_NATURAL */
+ #line 554 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "Converting number " << yypvt[0].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "Converting number " << yypvt[0].Value << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											NumericValue v(yypvt[0].Value, L_LONG); yyval.NumInitialiser = v.GetLong();
+ 										
+@@ -1545,7 +1545,7 @@
+ 
+ case YYr108: {	/* character_set-statement :  L_CHARACTER_SET L_LABEL */
+ #line 655 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "character_set-statement                    " << yypvt[0].Value << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "character_set-statement                    " << yypvt[0].Value << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											SourceCharacterSet = CharacterSetID(yypvt[0].Value);
+ 											if ( SourceCharacterSet == String::UNKNOWN )
+@@ -1566,7 +1566,7 @@
+ case YYr109: {	/* offset-statement :  L_OFFSET natural-expression */
+ #line 679 "../rcomp.y"
+ 	if(verbose) {	RCTypeArray Types;
+-															MOFF;cout << "offset-statement                           " << yypvt[0].Value << endl;MON; }
++															MOFF;std::cout << "offset-statement                           " << yypvt[0].Value << std::endl;MON; }
+ 											REGISTER_LINE;
+ 										 	CurrentId=((long) NumericValue(yypvt[0].Value, L_LONG).GetULong() );
+ 										
+@@ -1574,7 +1574,7 @@
+ 
+ case YYr110: {	/* system-statement :  L_SYSTEM */
+ #line 690 "../rcomp.y"
+-	if(verbose) {	MOFF;cout << "system-statement" << endl;MON;}
++	if(verbose) {	MOFF;std::cout << "system-statement" << std::endl;MON;}
+ 											CurrentIdStep=-1;
+ 										
+ } break;
+@@ -1583,7 +1583,7 @@
+ #line 704 "../rcomp.y"
+ 	
+ 	    if(verbose) 
+-		{ MOFF;cout << "enum-statement" << endl;MON;} 
++		{ MOFF;std::cout << "enum-statement" << std::endl;MON;} 
+ 	    CurrentEnumName = yypvt[-1].Value;
+ 	    CurrentEnumValue=0;
+ 	    
+@@ -1593,7 +1593,7 @@
+ #line 711 "../rcomp.y"
+ 	
+ 	    if(verbose) 
+-		{ MOFF;cout << "enum-statement" << endl;MON;} 
++		{ MOFF;std::cout << "enum-statement" << std::endl;MON;} 
+ 	    CurrentEnumName = "";
+ 	    CurrentEnumValue=0;
+ 	    
+@@ -1957,7 +1957,7 @@
+ 	// ABCD corresponds to the number 4321 which becomes ( (4*27 + 3) * 27 + 2) * 27 + 1.
+ 	
+ 	if(verbose) 
+-		{ MOFF;cout << "name-statement                             " << NameStatementValue << endl;MON;}
++		{ MOFF;std::cout << "name-statement                             " << NameStatementValue << std::endl;MON;}
+ 	if ( NameStatementValue.Length() > 4)
+ 		{
+ 		ErrorHandler::OutputErrorLine( "Name must be no longer than four characters");
+@@ -1976,7 +1976,7 @@
+ 	CurrentId = NewId << 12;
+ 	FormatIdAsHex = 1;
+ 	if(verbose) 
+-		{ MOFF;cout << "Current id                                " << CurrentId << endl;MON;}
++		{ MOFF;std::cout << "Current id                                " << CurrentId << std::endl;MON;}
+ 	}
+ 
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/derived/rcompl.cph sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/derived/rcompl.cph
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/derived/rcompl.cph	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/derived/rcompl.cph	2021-02-16 23:28:08.506794737 +0000
+@@ -235,12 +235,12 @@
+  151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151,
+  151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151, 151,
+  151, 152, 171, 173, 173, 175, 177, 178, 180, 174, 181, 170, 169, 168, 166, 165,
+- 170, 169, 168, 166, 165, 164, 163, 187, 171, 152, 164, 175, ~0, ~0, 152, 174,
+- ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0,
+- ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0,
+- ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0, ~0,
+- ~0, ~0, ~0, 152, ~0, ~0, ~0, ~0, ~0, 152, ~0, ~0, ~0, 152, ~0, ~0,
+- ~0, ~0, ~0, ~0, ~0, 152, ~0, ~0, ~0, 152, ~0, 152, ~0, 152, 162, 162,
++ 170, 169, 168, 166, 165, 164, 163, 187, 171, 152, 164, 175, 255, 255, 152, 174,
++ 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
++ 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
++ 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
++ 255, 255, 255, 152, 255, 255, 255, 255, 255, 152, 255, 255, 255, 152, 255, 255,
++ 255, 255, 255, 255, 255, 152, 255, 255, 255, 152, 255, 152, 255, 152, 162, 162,
+  162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162,
+  162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162,
+  162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162, 162,
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/errorhan.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/errorhan.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/errorhan.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/errorhan.cpp	2021-02-16 23:09:32.410774591 +0000
+@@ -19,6 +19,6 @@
+ 
+ void ErrorHandler::OutputErrorLine(const String& aAdditionalText)
+ 	{
+-	cerr << iFileName << "(" << iLineNumber << ") : " << aAdditionalText << endl;
++		std::cerr << iFileName << "(" << iLineNumber << ") : " << aAdditionalText << std::endl;
+ 	}
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/indextab.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/indextab.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/indextab.cpp	2005-01-31 13:56:40.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/indextab.cpp	2021-02-16 23:10:28.287030220 +0000
+@@ -42,10 +42,10 @@
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, const IndexTableItem & o)
++std::ostream & operator<< ( std::ostream & os, const IndexTableItem & o)
+ 	{
+ 	unsigned long offset = (o.iOffset[1]<<8)|o.iOffset[0];
+-	os << "IndexTableItem " << hex << offset << dec << "\t" << o.iResource->iLabel << endl;
++	os << "IndexTableItem " << hex << offset << dec << "\t" << o.iResource->iLabel << std::endl;
+ 	return os;
+ 	}
+ 
+@@ -76,13 +76,13 @@
+ 	}
+ 
+ 
+-ostream & operator<< ( ostream & os, const IndexTable & o)
++std::ostream & operator<< ( std::ostream & os, const IndexTable & o)
+ 	{
+-	os << "IndexTable" << endl;
++	os << "IndexTable" << std::endl;
+ 	
+ 	if ( o.Size() == 0)
+ 		{
+-		os << "<None>" << endl;
++		os << "<None>" << std::endl;
+ 		return os;
+ 		}
+ 		
+@@ -93,7 +93,7 @@
+ 		os << * p;
+ 
+ 	unsigned long offset = (o.iOffset[1]<<8)|o.iOffset[0];
+-	os << "IndexTable     " << hex << offset << dec << endl;
++	os << "IndexTable     " << hex << offset << dec << std::endl;
+ 	return os;
+ 	}
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/linkarra.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/linkarra.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/linkarra.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/linkarra.cpp	2021-02-16 23:11:25.247283786 +0000
+@@ -37,7 +37,7 @@
+ 
+ void LinkArray::OverwriteLinks ( RCBinaryStream & os ) const
+ 	{
+-	if ( verbose) { MOFF; cout << "Writing in correct links." << endl; MON;}
++	if ( verbose) { MOFF; std::cout << "Writing in correct links." << std::endl; MON;}
+ 	LinkArrayIterator next( *this);
+ 	LinkItem * p;
+ 	while ( ( p = next() ) != NULL)
+@@ -65,7 +65,7 @@
+ 
+ void WordLink::OverwriteLink( RCBinaryStream & os ) const
+ 	{
+-	if ( verbose) { MOFF; cout << "Writing WORD link: " << iResourceName << "\t" << iStreamPosition << endl; MON;}
++	if ( verbose) { MOFF; std::cout << "Writing WORD link: " << iResourceName << "\t" << iStreamPosition << std::endl; MON;}
+ 	os.SetPosition(iStreamPosition);
+ 	ErrorHandler::Register(iFileName,iLineNumber);
+ 	os << NumericValue(pResourceNameIds->FindId(iResourceName),L_WORD);
+@@ -73,7 +73,7 @@
+ 
+ void LongLink::OverwriteLink( RCBinaryStream & os ) const
+ 	{
+-	if ( verbose) { MOFF; cout << "Writing LONG link: " << iResourceName << "\t" << iStreamPosition << endl; MON;}
++	if ( verbose) { MOFF; std::cout << "Writing LONG link: " << iResourceName << "\t" << iStreamPosition << std::endl; MON;}
+ 	os.SetPosition(iStreamPosition);
+ 	ErrorHandler::Register(iFileName,iLineNumber);
+ 	os << NumericValue(pResourceNameIds->FindId(iResourceName),L_LONG);
+@@ -96,23 +96,23 @@
+ 	LinkItem(aStream,aResourceName,aFileName,aLineNumber)
+ 	{}
+ 
+-ostream & WordLink::StreamOut ( ostream & os)
++std::ostream & WordLink::StreamOut ( std::ostream & os)
+ 	{
+-	os << "WordLink: " << iStreamPosition << "\t" << iResourceName << endl;
++	os << "WordLink: " << iStreamPosition << "\t" << iResourceName << std::endl;
+ 	
+ 	return os;
+ 	}
+ 
+-ostream & LongLink::StreamOut( ostream & os)
++std::ostream & LongLink::StreamOut( std::ostream & os)
+ 	{
+-	os << "LongLink: " << iStreamPosition << "\t" << iResourceName << endl;
++	os << "LongLink: " << iStreamPosition << "\t" << iResourceName << std::endl;
+ 	
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, LinkArray & o)
++std::ostream & operator<< ( std::ostream & os, LinkArray & o)
+ 	{
+-	os << "LinkArray *******" << endl;
++	os << "LinkArray *******" << std::endl;
+ 	
+ 	LinkArrayIterator next( o);
+ 	LinkItem * p;
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/main.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/main.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/main.cpp	2005-02-01 13:39:46.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/main.cpp	2021-02-16 23:12:03.679451245 +0000
+@@ -109,22 +109,22 @@
+ 
+ 	if(verbose) 
+ 		{
+-		MOFF; cout << aIndex; cout << endl; MON;
++		MOFF; std::cout << aIndex; std::cout << std::endl; MON;
+ 		}
+ 	}
+ 
+ void OutputHelp()
+ 	{
+-	cerr << "Resource compiler version " << version << " (C) 1997-2001 Symbian Ltd." << endl;
+-	cerr << "Usage: rcomp [-vpu] [-oRSCFile] [-{uid2,uid3}] [-hHeaderFile] [-sSourceFile] [-iBaseInputFileName]" << endl;
+-	cerr << "\tv" << "\tverbose" << endl;
+-	cerr << "\tp" << "\tParser debugging" << endl;
+-	cerr << endl;
+-	cerr << "\tu" << "\tGenerate Unicode resource binary" << endl;
+-	cerr << endl;
+-	cerr << "If no source file is specified, the source will be read from standard input." << endl;
+-	cerr << "(-i is used to specify the file given to the preprocessor this " << endl;
+-	cerr << "    name is used in generating debug output.)" << endl;
++	std::cerr << "Resource compiler version " << version << " (C) 1997-2001 Symbian Ltd." << std::endl;
++	std::cerr << "Usage: rcomp [-vpu] [-oRSCFile] [-{uid2,uid3}] [-hHeaderFile] [-sSourceFile] [-iBaseInputFileName]" << std::endl;
++	std::cerr << "\tv" << "\tverbose" << std::endl;
++	std::cerr << "\tp" << "\tParser debugging" << std::endl;
++	std::cerr << std::endl;
++	std::cerr << "\tu" << "\tGenerate Unicode resource binary" << std::endl;
++	std::cerr << std::endl;
++	std::cerr << "If no source file is specified, the source will be read from standard input." << std::endl;
++	std::cerr << "(-i is used to specify the file given to the preprocessor this " << std::endl;
++	std::cerr << "    name is used in generating debug output.)" << std::endl;
+ 	}
+ 
+ 
+@@ -133,7 +133,7 @@
+ 
+ int main(int argc, char * argv[])
+ 	{
+-	cout << "\n";
++	std::cout << "\n";
+ 	int vParam=0;
+ 	logmemorysetting = 0;
+ 	unsigned short	pParam = 0;
+@@ -242,7 +242,7 @@
+ 		{
+ 		if((pSourceFile = fopen(SourceFileName.GetBuffer(), "r") ) == NULL)
+ 			{
+-			cerr << "Failed to open " << SourceFileName << endl;
++			std::cerr << "Failed to open " << SourceFileName << std::endl;
+ 			exit(-2);
+ 			}
+ 		}
+@@ -260,7 +260,7 @@
+ 
+ 	if (ret != 0)
+ 		{
+-		cerr << "RCOMP failed with code " << ret << endl;
++		std::cerr << "RCOMP failed with code " << ret << std::endl;
+ 		exit(ret);
+ 		}
+ 	// A successful parse, now generate the output files
+@@ -287,7 +287,7 @@
+ 
+ 		if (verbose)
+ 			{
+-			MOFF; cout << uidcrcTool << " " << uidcrcUIDs[0] << " " << uidcrcUIDs[1] << " " << uidcrcUIDs[2] << " " << DataOutputFileName.GetBuffer(); cout << endl; MON;
++			MOFF; std::cout << uidcrcTool << " " << uidcrcUIDs[0] << " " << uidcrcUIDs[1] << " " << uidcrcUIDs[2] << " " << DataOutputFileName.GetBuffer(); std::cout << std::endl; MON;
+ 			}
+ 
+ 		char uidcrc_params[256];
+@@ -300,20 +300,20 @@
+ 					 uidcrcUIDs[2],
+ 					 DataOutputFileName.GetBuffer());
+ 		if(ret <= 0) {
+-			cerr << "Failed to write UIDs to " << DataOutputFileName << endl;
++			std::cerr << "Failed to write UIDs to " << DataOutputFileName << std::endl;
+ 			exit(ret);
+ 		}
+ 		const int error = system(uidcrc_params);
+ 		if(error != 0)
+ 			{
+-			cerr << "Failed to write UIDs to " << DataOutputFileName << endl;
++			std::cerr << "Failed to write UIDs to " << DataOutputFileName << std::endl;
+ 			exit(error);
+ 			}
+ 		RCBinaryStream RSCStream;
+ 		RSCStream.OpenForAppend(DataOutputFileName);
+ 		if(! RSCStream.IsOpen())
+ 			{
+-			cerr << "Failed to open " << DataOutputFileName << endl;
++			std::cerr << "Failed to open " << DataOutputFileName << std::endl;
+ 			exit(-2);
+ 			}
+ 		WriteResourceFile(RSCStream, pG->Index, pG->Links, thirdUidIsOffset);
+@@ -325,7 +325,7 @@
+ 		RSG = fopen(HeaderOutputFileName.GetBuffer(), "w");
+ 		if(RSG==NULL)
+ 			{
+-			cerr << "Failed to open " << HeaderOutputFileName << endl;
++			std::cerr << "Failed to open " << HeaderOutputFileName << std::endl;
+ 			exit(-2);
+ 			}
+ 		WriteHeaderFile(RSG, pG->Index);
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/mem.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/mem.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/mem.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/mem.cpp	2021-02-16 23:12:18.059513202 +0000
+@@ -3,7 +3,7 @@
+ // Copyright (c) 1997-1999 Symbian Ltd.  All rights reserved.
+ //
+ 
+-#include <iostream.h>
++#include <iostream>
+ #include <stdlib.h>
+ #include "mem.h"
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/nameidma.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/nameidma.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/nameidma.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/nameidma.cpp	2021-02-16 23:12:43.291621043 +0000
+@@ -49,9 +49,9 @@
+ 	return 0;
+ 	}
+ 
+-ostream & operator<<(ostream& os,NameIdMap& o)
++std::ostream & operator<<(std::ostream& os,NameIdMap& o)
+ 	{
+-	os << "ResourceNameIds ******" << endl;
++	os << "ResourceNameIds ******" << std::endl;
+ 	NameIdMapIterator next(o);
+ 	NameIdItem* p;
+ 	while((p = next() ) != NULL)
+@@ -66,9 +66,9 @@
+ 	iId(aIdToSet)
+ 	{}
+ 
+-ostream & operator<<(ostream& os,NameIdItem& o)
++std::ostream & operator<<(std::ostream& os,NameIdItem& o)
+ 	{
+-	os << "NameIdItem " << o.iName << "\t" << o.iId << endl;
++	os << "NameIdItem " << o.iName << "\t" << o.iId << std::endl;
+ 	return os;
+ 	}
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/numval.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/numval.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/numval.cpp	2005-02-01 13:40:22.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/numval.cpp	2021-02-16 23:13:12.419744215 +0000
+@@ -130,7 +130,7 @@
+ 	
+ 	double d = atof( Source.GetBuffer());
+ 	if ( d == 0.0 && !( Source == "0.0" || Source == "0") )
+-		{ MOFF; cerr << "atof may have failed for " << Source << endl; MON;}
++		{ MOFF; std::cerr << "atof may have failed for " << Source << std::endl; MON;}
+ 		
+ 	iDoubleValue = d;
+ 	}
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcbinstr.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcbinstr.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcbinstr.cpp	2005-02-01 13:45:45.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcbinstr.cpp	2021-02-16 23:22:41.745955209 +0000
+@@ -30,8 +30,8 @@
+ void RCBinaryStream::OpenForAppend(const String& FileName)
+ 	{
+ 	assert( !IsOpen());
+-	//iOs.open( FileName.GetBuffer(), ios::out | ios::binary | ios::ate);
+-	iOs.open( FileName.GetBuffer(), ios::out | ios::in | ios::binary | ios::ate);
++	//iOs.open( FileName.GetBuffer(), std::ios::out | std::ios::binary | std::ios::ate);
++	iOs.open( FileName.GetBuffer(), std::ios::out | std::ios::in | std::ios::binary | std::ios::ate);
+ 	}
+ 
+ int RCBinaryStream::IsOpen()
+@@ -87,7 +87,7 @@
+ 	 *          program would not work. someone please enlighten me.
+ 	 */
+ 	//	assert(aNewPosition<=GetPosition()); TODO
+-	iOs.seekp(aNewPosition, ios::beg);
++	iOs.seekp(aNewPosition, std::ios::beg);
+ 	}
+ 
+ // ResourceDataStream - this code makes the apparently valid assumption that the decompressing of compressed Unicode (done by BAFL) will yield exactly the same length of string as what you started with before it was compressed (by RCOMP)
+@@ -109,7 +109,7 @@
+ 	{
+ 	NumericValue* const sizeOfBlockWhenUncompressed=new NumericValue(aDataTypeOfSizePrefix);
+ 	assert(sizeOfBlockWhenUncompressed!=NULL);
+-	iArrayOfMarks.AppendMark(iNumberOfBytesUsed, EMarkType_StartOfBlockWithSizePrefix, (unsigned int)sizeOfBlockWhenUncompressed);
++	iArrayOfMarks.AppendMark(iNumberOfBytesUsed, EMarkType_StartOfBlockWithSizePrefix, (unsigned long long)sizeOfBlockWhenUncompressed);
+ 	}
+ 
+ void ResourceDataStream::EndOfBlockWithSizePrefix()
+@@ -140,11 +140,11 @@
+ 			}
+ 		if (insertZeroLengthCompressedUnicodeRunAtStart)
+ 			{
+-			iArrayOfMarks.InsertMark(0, 0, EMarkType_StartOfCompressedUnicodeRun, (unsigned int)BinaryBuffer::New(0, NULL)); // mark the insertion point for the initial zero-length compressed-Unicode run
++			iArrayOfMarks.InsertMark(0, 0, EMarkType_StartOfCompressedUnicodeRun, (unsigned long long)BinaryBuffer::New(0, NULL)); // mark the insertion point for the initial zero-length compressed-Unicode run
+ 			iArrayOfMarks.InsertMark(1, 0, EMarkType_EndOfCompressedUnicodeRun); // mark the insertion point for the subsquent run of "other stuff"
+ 			}
+ 		}
+-	iArrayOfMarks.AppendMark(iNumberOfBytesUsed, EMarkType_StartOfCompressedUnicodeRun, (unsigned int)BinaryBuffer::New(aUncompressedUnicodeSizeInBytes, aUncompressedUnicodeBuffer));
++	iArrayOfMarks.AppendMark(iNumberOfBytesUsed, EMarkType_StartOfCompressedUnicodeRun, (unsigned long long)BinaryBuffer::New(aUncompressedUnicodeSizeInBytes, aUncompressedUnicodeBuffer));
+ 	iContainsCompressedUnicode=true;
+ 	}
+ 
+@@ -167,7 +167,7 @@
+ 
+ void ResourceDataStream::EnquireStreamPositionWhenKnown(unsigned long& aStreamPosition)
+ 	{
+-	iArrayOfMarks.AppendMark(iNumberOfBytesUsed, EMarkType_EnquireStreamPositionWhenKnown, (unsigned int)&aStreamPosition);
++	iArrayOfMarks.AppendMark(iNumberOfBytesUsed, EMarkType_EnquireStreamPositionWhenKnown, (unsigned long long)&aStreamPosition);
+ 	}
+ 
+ void ResourceDataStream::StreamIn(const unsigned char* aBuffer, int aNumberOfBytes)
+@@ -217,13 +217,13 @@
+ 	// do a second pass to see if there are any compressed-Unicode runs that don't actually make the resource smaller (taking into consideration the preceding run-length byte(s) and any trailing run-length byte(s)) - if so, replace the EMarkType_StartOfCompressedUnicodeRun/EMarkType_EndOfCompressedUnicodeRun mark-pair with a single EMarkType_TwoByteAlignmentPoint mark and go right back to the start of the first pass
+ 	// do a third and final pass to actually write out the resource data to aStream
+ 	const int numberOfMarks=iArrayOfMarks.Size(); // caching this is done *after* the "startOfFirstPass" as ConvertCompressedRunToUncompressed (which is called just before "goto startOfFirstPass") changes the number of items in iArrayOfMarks
+-	const unsigned int* lengthOfLastRun=NULL;
++	const unsigned long long* lengthOfLastRun=NULL;
+ 	for (int pass=0; pass<3; ++pass)
+ 		{
+ 		const int numberOfBytesBeforeFirstMark=NumberOfBytesToNextMark(-1);
+ 		int runLength=numberOfBytesBeforeFirstMark;
+ 		int uncompressedSize=numberOfBytesBeforeFirstMark;
+-		unsigned int* addressToWriteSizeOfCompressedIntegerTo=NULL; // used on the first pass
++		unsigned long long* addressToWriteSizeOfCompressedIntegerTo=NULL; // used on the first pass
+ 		SizePrefixStack sizePrefixStack; // used on the first pass
+ 		int bufferIndex=0; // used on the third pass
+ 		if (pass==2)
+@@ -253,7 +253,7 @@
+ 					{
+ 					aStream << *sizeOfBlockWhenUncompressed;
+ 					delete sizeOfBlockWhenUncompressed;
+-					mark.iOtherData=(unsigned int)(NumericValue*)NULL;
++					mark.iOtherData=(unsigned long long)(NumericValue*)NULL;
+ 					}
+ 				}
+ 				break;
+@@ -293,7 +293,7 @@
+ 					}
+ 				else if (pass==1)
+ 					{
+-					const unsigned int* const lengthOfOtherStuffRun=&nextMark.iOtherData;
++					const unsigned long long* const lengthOfOtherStuffRun=&nextMark.iOtherData;
+ 					const bool isTheFirstCompressedUnicodeRun=!encounteredCompressedUnicode[pass];
+ 					const bool isTheLastCompressedUnicodeRun=(lengthOfLastRun==lengthOfOtherStuffRun);
+ 					if (isTheLastCompressedUnicodeRun || !isTheFirstCompressedUnicodeRun) // if this is the first compressed-Unicode run and there are others, then we can't get rid of it, hence this check
+@@ -318,11 +318,11 @@
+ 					{
+ 					assert(pass==2);
+ 					runWhenUncompressed.Destroy();
+-					mark.iOtherData=(unsigned int)(BinaryBuffer*)NULL;
++					mark.iOtherData=(unsigned long long)(BinaryBuffer*)NULL;
+ 					aStream.WriteCompressedInteger(numberOfBytesWhenCompressed);
+ 					aStream.Write(iBuffer+bufferIndex, numberOfBytesWhenCompressed);
+ 					bufferIndex+=numberOfBytesWhenCompressed;
+-					const unsigned int* const lengthOfOtherStuffRun=&nextMark.iOtherData;
++					const unsigned long long* const lengthOfOtherStuffRun=&nextMark.iOtherData;
+ 					if ((lengthOfLastRun!=lengthOfOtherStuffRun) || (*lengthOfOtherStuffRun>0))
+ 						{
+ 						aStream.WriteCompressedInteger(*lengthOfOtherStuffRun);
+@@ -434,7 +434,7 @@
+ 	Mark* markForStartOfCompressedUnicodeRun=&iArrayOfMarks.MarkAt(aMarkIndexOfStartOfCompressedUnicodeRun);
+ 	assert(markForStartOfCompressedUnicodeRun->iMarkType==EMarkType_StartOfCompressedUnicodeRun);
+ 	BinaryBuffer& runWhenUncompressed=*(BinaryBuffer*)markForStartOfCompressedUnicodeRun->iOtherData;
+-	markForStartOfCompressedUnicodeRun->iOtherData=(unsigned int)(BinaryBuffer*)NULL;
++	markForStartOfCompressedUnicodeRun->iOtherData=(unsigned long long)(BinaryBuffer*)NULL;
+ 	Mark* markForEndOfCompressedUnicodeRun=&iArrayOfMarks.MarkAt(aMarkIndexOfStartOfCompressedUnicodeRun+1);
+ 	assert(markForEndOfCompressedUnicodeRun->iMarkType==EMarkType_EndOfCompressedUnicodeRun);
+ 	const int bufferPositionOfStartOfCompressedUnicodeRun=markForStartOfCompressedUnicodeRun->iBufferPosition;
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcomp.y sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcomp.y
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcomp.y	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcomp.y	2021-02-16 23:00:39.295795199 +0000
+@@ -7,7 +7,7 @@
+ 
+ #include <assert.h>
+ #include <ctype.h>
+-#include <fstream.h>
++#include <fstream>
+ #include "resource.h"
+ #include "rcstack.h"
+ #include "rcompl.hpp"
+@@ -108,7 +108,7 @@
+ /*****************************************************************/
+ /* TOP-MOST RULE                                                 */
+ /*****************************************************************/
+-source :	statement-list				{	if(verbose)	{	MOFF; cout << Divider << "\n" << Divider << endl; MON; }
++source :	statement-list				{	if(verbose)	{	MOFF; std::cout << Divider << "\n" << Divider << std::endl; MON; }
+ 										}
+ ;
+ /*****************************************************************/
+@@ -133,29 +133,29 @@
+ /***********************************************************************************/
+ struct-statement:
+ 	struct-statement-start struct-item-list '}'
+-										{	if(verbose) { MOFF; cout << Divider << "\n" << * pSH << Divider << endl; MON;}	}
++										{	if(verbose) { MOFF; std::cout << Divider << "\n" << * pSH << Divider << std::endl; MON;}	}
+ ;
+ struct-statement-start:
+-	L_STRUCT L_LABEL '{'				{	if(verbose) {	MOFF;cout << "struct-statement-start                     " << $2 << endl; MON;}
++	L_STRUCT L_LABEL '{'				{	if(verbose) {	MOFF;std::cout << "struct-statement-start                     " << $2 << std::endl; MON;}
+ 											pSH = new StructHeader($2);
+ 											REGISTER_LINE;
+ 											pG->SHA.Add(pSH);
+ 										}
+ |	L_STRUCT L_LABEL len-declaration '{'
+-										{	if(verbose) {	RCTypeArray Types; MOFF;cout << "struct-statement-start                     " << $2 << " " << Types.GetName($3) << endl; MON;}
++										{	if(verbose) {	RCTypeArray Types; MOFF;std::cout << "struct-statement-start                     " << $2 << " " << Types.GetName($3) << std::endl; MON;}
+ 											pSH = new StructHeader($2, $3);
+ 											REGISTER_LINE;
+ 											pG->SHA.Add(pSH);
+ 										}
+ |	L_STRUCT L_LABEL L_LEN '{'
+-										{	if(verbose) {	MOFF;cout << "struct-statement-start                     " << $2 << " (WORD)" << endl; MON;}
++										{	if(verbose) {	MOFF;std::cout << "struct-statement-start                     " << $2 << " (WORD)" << std::endl; MON;}
+ 											pSH = new StructHeader($2, L_WORD);
+ 											REGISTER_LINE;
+ 											pG->SHA.Add(pSH);
+ 										}
+ ;
+ struct-item-list:
+-	struct-item-list struct-item ';'	{	if(verbose) {	MOFF;cout << "struct-item-list                           Adding struct-item." << endl; MON;}
++	struct-item-list struct-item ';'	{	if(verbose) {	MOFF;std::cout << "struct-item-list                           Adding struct-item." << std::endl; MON;}
+ 											REGISTER_LINE;
+ 											pSH->iSIA.Add($2);
+ 										}
+@@ -170,17 +170,17 @@
+ simple-struct-item:
+ 	simple-struct-item-start			{	$$ = $1;}
+ |	simple-struct-item-start '(' natural-expression ')'
+-										{	if(verbose) { MOFF;cout << "    Limit: " << $3 << endl; MON;}
++										{	if(verbose) { MOFF;std::cout << "    Limit: " << $3 << std::endl; MON;}
+ 											$1->iLengthLimit = $3;
+ 											$$ = $1;
+ 										}
+ |	simple-struct-item-start '=' simple-initialiser	/****************************************************************/
+-										{	if(verbose) { MOFF;cout << "    Default: " << $3 << endl; MON;}
++										{	if(verbose) { MOFF;std::cout << "    Default: " << $3 << std::endl; MON;}
+ 											$1->iDefault = $3;
+ 											$$ = $1;
+ 										}
+ |	simple-struct-item-start '(' natural-expression ')' '=' string-expression /****************************************************************/
+-										{	if(verbose) { MOFF;cout << "    Limit: " << $3 << ", Default: " << $6 << endl; MON;}
++										{	if(verbose) { MOFF;std::cout << "    Limit: " << $3 << ", Default: " << $6 << std::endl; MON;}
+ 											NumericValue Limit($3, L_LONG);
+ 											if(String($6).ExportLength(TargetCharacterSet,SourceCharacterSet) > Limit.GetULong() )
+ 											{
+@@ -197,7 +197,7 @@
+ simple-struct-item-start:
+ 	data-type L_LABEL					{	if(verbose) 
+ 											{			   RCTypeArray Types;
+-														   MOFF;cout << "simple-struct-item                         " << Types.GetName($1) << " " << $2 << endl; MON;
++														   MOFF;std::cout << "simple-struct-item                         " << Types.GetName($1) << " " << $2 << std::endl; MON;
+ 											}
+ 											$$ = new SimpleStructItem($1,$2); 
+ 											assert($$ != NULL);
+@@ -205,7 +205,7 @@
+ |	data-type '<' natural-expression-numeric '>' L_LABEL
+ 										{	if(verbose) 
+ 											{			   RCTypeArray Types;
+-														   MOFF;cout << "simple-struct-item                         " << Types.GetName($1) << " " << $5 << endl; MON;
++														   MOFF;std::cout << "simple-struct-item                         " << Types.GetName($1) << " " << $5 << std::endl; MON;
+ 											}
+ 											String s(NumericValue::ltoa($3));
+ 											$$ = new SimpleStructItem($1,$5,s);
+@@ -260,7 +260,7 @@
+ array-struct-item:
+ 	array-struct-item-base				{	$$ = $1;}
+ |	array-struct-item-base '=' '{' simple-initialiser-list '}'
+-										{	if(verbose) {	MOFF;cout << "array-struct-item                          with simple-initialiser-list" << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "array-struct-item                          with simple-initialiser-list" << std::endl;MON;}
+ 											$1->iDefaults = * $4;
+ 											if($1->iSize.Length() > 0)
+ 											{
+@@ -277,18 +277,18 @@
+ 										}
+ ;
+ array-struct-item-base:
+-	array-struct-item-start ']'			{	if(verbose) {	MOFF;cout << "array-struct-item-base                     with no size" << endl;MON;}
++	array-struct-item-start ']'			{	if(verbose) {	MOFF;std::cout << "array-struct-item-base                     with no size" << std::endl;MON;}
+ 											$$ =$1;
+ 										}
+ |	array-struct-item-start natural-expression ']'
+-										{	if(verbose) {	MOFF;cout << "array-struct-item-base                     with size " << $2 << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "array-struct-item-base                     with size " << $2 << std::endl;MON;}
+ 											$1->iSize = $2;
+ 											$$ = $1;
+ 										}
+ |	L_LEN len-declaration array-struct-item-start ']'
+ 										{	if(verbose) 
+ 												{		 	RCTypeArray Types;
+-														 	MOFF;cout << "array-struct-item-base                     with LenType " << Types.GetName($2) << endl;MON;
++														 	MOFF;std::cout << "array-struct-item-base                     with LenType " << Types.GetName($2) << std::endl;MON;
+ 												}
+ 											$3->iLenType = $2;
+ 											$$ = $3;
+@@ -296,7 +296,7 @@
+ |	L_LEN len-declaration array-struct-item-start natural-expression ']'
+ 										{	if(verbose) 
+ 												{		 	RCTypeArray Types;
+-														 	MOFF;cout << "array-struct-item-base                     with size " << $4 << " and LenType " << Types.GetName($2) << endl;MON;
++														 	MOFF;std::cout << "array-struct-item-base                     with size " << $4 << " and LenType " << Types.GetName($2) << std::endl;MON;
+ 												}
+ 											$3->iLenType = $2;
+ 											$3->iSize = $4; 
+@@ -306,7 +306,7 @@
+ array-struct-item-start:
+ 	data-type L_LABEL '['				{	if(verbose) 
+ 												{		 	RCTypeArray Types; 
+-														 	MOFF;cout << "array-struct-item-start                    " << Types.GetName($1) << " " << $2 << endl;MON;
++														 	MOFF;std::cout << "array-struct-item-start                    " << Types.GetName($1) << " " << $2 << std::endl;MON;
+ 												}
+ 											$$ = new ArrayStructItem($1, $2);
+ 										}
+@@ -316,23 +316,23 @@
+ |	L_WORD								{	$$ = L_WORD;}
+ ;
+ struct-type-struct-item:
+-	L_STRUCT L_LABEL					{	if(verbose) {	MOFF;cout << "struct-type-struct-item                    " << $2 << endl;MON;}
++	L_STRUCT L_LABEL					{	if(verbose) {	MOFF;std::cout << "struct-type-struct-item                    " << $2 << std::endl;MON;}
+ 											$$ = new StructTypeStructItem($2);
+ 										}
+ ;
+ struct-array-struct-item:
+ 	struct-array-struct-item-base		{	$$ = $1;}
+ |	L_LEN len-declaration struct-array-struct-item-base
+-										{	if(verbose) {	RCTypeArray Types; MOFF;cout << "struct-array-struct-item                   - Setting Size to " << Types.GetName($2) << endl;MON;}
++										{	if(verbose) {	RCTypeArray Types; MOFF;std::cout << "struct-array-struct-item                   - Setting Size to " << Types.GetName($2) << std::endl;MON;}
+ 											$3->iLenType = $2; $$ = $3;
+ 										}
+ ;
+ struct-array-struct-item-base:
+-	L_STRUCT L_LABEL '[' ']'			{	if(verbose) {	MOFF;cout << "struct-array-struct-item-base              " << $2 << endl;MON;}
++	L_STRUCT L_LABEL '[' ']'			{	if(verbose) {	MOFF;std::cout << "struct-array-struct-item-base              " << $2 << std::endl;MON;}
+ 											$$ = new StructArrayStructItem($2);
+ 										}
+ |	L_STRUCT L_LABEL '[' natural-expression ']'
+-										{	if(verbose) {	MOFF;cout << "struct-array-struct-item-base              " << $2 << " " << $4 << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "struct-array-struct-item-base              " << $2 << " " << $4 << std::endl;MON;}
+ 											$$ = new StructArrayStructItem($2, $4);
+ 										}
+ ;
+@@ -344,7 +344,7 @@
+ 	    {	
+ 	    pResourceHeader->AddDefault();
+ 	    CurrentId+=CurrentIdStep;
+-	    if(verbose) { MOFF;cout << "Resource ID "<< CurrentId << endl << Divider << "\n" << * pResourceHeader << Divider << endl;MON;}
++	    if(verbose) { MOFF;std::cout << "Resource ID "<< CurrentId << std::endl << Divider << "\n" << * pResourceHeader << Divider << std::endl;MON;}
+ 	    pResourceHeader->SetResourceId(*pResourceNameIds,CurrentId,FormatIdAsHex);
+ 	    pG->Index.Add(pResourceHeader);
+ 	    pResourceHeader = NULL;
+@@ -354,14 +354,14 @@
+ 	L_GLOBAL resource-statement-start-names		/* Ignore GLOBAL (obsolete feature).*/
+ |	L_LOCAL  resource-statement-start-names
+ 	    {	
+-	    if(verbose) { MOFF;cout << "resource-statement-start                   LOCAL" << endl;MON;}
++	    if(verbose) { MOFF;std::cout << "resource-statement-start                   LOCAL" << std::endl;MON;}
+ 		    assert(pResourceHeader != NULL);
+ 		    pResourceHeader->iLocal = 1;
+ 	    }
+ |	resource-statement-start-names
+ ;
+ resource-statement-start-names:
+-	L_RESOURCE L_LABEL L_LABEL			{	if(verbose) {	MOFF;cout << "resource-statement-start-names             " << $2 << " " << $3 << endl;MON;}
++	L_RESOURCE L_LABEL L_LABEL			{	if(verbose) {	MOFF;std::cout << "resource-statement-start-names             " << $2 << " " << $3 << std::endl;MON;}
+ 											assert(pResourceHeader == NULL);
+ 											pResourceHeader = new ResourceHeader($3);
+ 											pCurrentRIA = & (pResourceHeader->iRIA);
+@@ -373,7 +373,7 @@
+ 											}
+ 											pCurrentRIA->FillFromStruct($2);
+ 										}
+-|	L_RESOURCE L_LABEL					{	if(verbose) {	MOFF;cout << "resource-statement-start-names             " << $2 << " <Resource not named>" << endl;MON;}
++|	L_RESOURCE L_LABEL					{	if(verbose) {	MOFF;std::cout << "resource-statement-start-names             " << $2 << " <Resource not named>" << std::endl;MON;}
+ 											assert(pResourceHeader == NULL);
+ 											pResourceHeader = new ResourceHeader;
+ 											pCurrentRIA = & (pResourceHeader->iRIA);
+@@ -382,12 +382,12 @@
+ 										}
+ ;
+ resource-item-list:
+-	resource-item-list resource-item ';'{	if(verbose) {	MOFF;cout << "resource-item-list" << endl;MON;}}
++	resource-item-list resource-item ';'{	if(verbose) {	MOFF;std::cout << "resource-item-list" << std::endl;MON;}}
+ |	resource-item-list error ';'		{	yyerrok(); yyclearin(); }
+ |	/* Nothing */
+ ;
+ resource-item:
+-	L_LABEL '=' simple-initialiser		{	if(verbose) {	MOFF;cout << "resource-item                              " << $1 << " " << $3 << endl;MON;}
++	L_LABEL '=' simple-initialiser		{	if(verbose) {	MOFF;std::cout << "resource-item                              " << $1 << " " << $3 << std::endl;MON;}
+ 											REGISTER_LINE;/****************************************************************/
+ 											pCurrentRIA->Set($1, $3);
+ 										}
+@@ -399,12 +399,12 @@
+ 	L_LABEL '=' '{' '}'                 
+ 	    {	
+ 	    if (verbose) 
+-		{ MOFF;cout << "resource-simple-array-item                 " << $1 << endl;MON;} 
++		{ MOFF;std::cout << "resource-simple-array-item                 " << $1 << std::endl;MON;} 
+ 	    }
+ |	L_LABEL '=' '{' simple-initialiser-list '}'
+ 	    {	
+ 	    if (verbose) 
+-		{ MOFF;cout << "resource-simple-array-item                 " << $1 << " with simple-initialiser-list" << endl;MON;}
++		{ MOFF;std::cout << "resource-simple-array-item                 " << $1 << " with simple-initialiser-list" << std::endl;MON;}
+ 	    REGISTER_LINE;
+ 	    pCurrentRIA->Set($1, * $4);
+ 	    delete $4;
+@@ -431,12 +431,12 @@
+ 
+ struct-resource-item:
+ 	struct-resource-item-start resource-item-list '}'
+-										{	if(verbose) {	MOFF;cout << "struct-resource-item" << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "struct-resource-item" << std::endl;MON;}
+ 											pCurrentRIA = pG->RIAStack.Pop();
+ 										}
+ ;
+ struct-resource-item-start:
+-	L_LABEL '=' L_LABEL '{'	{	if(verbose) {	MOFF;cout << "struct-resource-item-start                 " << $1 << " " << $3 << endl;MON;}
++	L_LABEL '=' L_LABEL '{'	{	if(verbose) {	MOFF;std::cout << "struct-resource-item-start                 " << $1 << " " << $3 << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											pCurrentRIA->Set($1, $3);
+ 											pG->RIAStack.Push(pCurrentRIA);
+@@ -445,14 +445,14 @@
+ ;
+ struct-array-resource-item:
+ 	struct-array-resource-item-start struct-array-resource-item-list-top '}'
+-										{	if(verbose) {	MOFF;cout << "struct-array-resource-item" << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "struct-array-resource-item" << std::endl;MON;}
+ 											pG->SRIStack.Pop();
+ 										}
+ |	struct-array-resource-item-start struct-array-resource-item-list-top error
+ 										{	pG->SRIStack.Pop();}
+ ;
+ struct-array-resource-item-start:
+-	L_LABEL '=' '{'	L_LABEL '{'			{	if(verbose) {	MOFF;cout << "struct-array-resource-item-start           " << $1 << " " << $4 << endl;MON;}
++	L_LABEL '=' '{'	L_LABEL '{'			{	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-start           " << $1 << " " << $4 << std::endl;MON;}
+ 											ResourceItem * p = pCurrentRIA->Find($1);
+ 											pG->SRIStack.Push(p);
+ 											REGISTER_LINE;
+@@ -467,7 +467,7 @@
+ |	struct-array-resource-item-list-top-start ',' error
+ ;
+ struct-array-resource-item-list-top-start:
+-	resource-item-list '}'				{	if(verbose) {	MOFF;cout << "struct-array-resource-item-list-top        " << endl;MON;}
++	resource-item-list '}'				{	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-list-top        " << std::endl;MON;}
+ 											pCurrentRIA = pG->RIAStack.Pop();
+ 										}
+ ;
+@@ -477,12 +477,12 @@
+ ;
+ struct-array-resource-item-list-item:
+ 	struct-array-resource-item-list-item-start resource-item-list '}'
+-										{	if(verbose) {	MOFF;cout << "struct-array-resource-item-list-item       " << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-list-item       " << std::endl;MON;}
+ 											pCurrentRIA = pG->RIAStack.Pop();
+ 										}
+ ;
+ struct-array-resource-item-list-item-start:
+-	L_LABEL '{'							{	if(verbose) {	MOFF;cout << "struct-array-resource-item-list-item-start " << $1 << endl;MON;}
++	L_LABEL '{'							{	if(verbose) {	MOFF;std::cout << "struct-array-resource-item-list-item-start " << $1 << std::endl;MON;}
+ 											ResourceItem * p = pG->SRIStack.Peek();
+ 											REGISTER_LINE;
+ 											p->Set($1);
+@@ -534,13 +534,13 @@
+ 	    {
+ 	    if(verbose) 
+ 		{	
+-		MOFF;cout << "simple-initialiser-list                    - single string " << $1 << endl;MON;
++		MOFF;std::cout << "simple-initialiser-list                    - single string " << $1 << std::endl;MON;
+ 		}
+ 	    $$ = new StringArray;
+ 	    $$->Add(new String($1) );
+ 	    }
+ |	simple-initialiser-list ',' simple-initialiser	
+-										{	if(verbose) {	MOFF;cout << "simple-initialiser-list                    - part of list " << $3 << endl;MON;}
++										{	if(verbose) {	MOFF;std::cout << "simple-initialiser-list                    - part of list " << $3 << std::endl;MON;}
+ 											assert($1 != NULL);
+ 											$1->Add(new String($3 ) );
+ 											$$ = $1;
+@@ -551,7 +551,7 @@
+ 	natural-expression-numeric			{	String s(NumericValue::ltoa($1) ); strcpy($$, s.GetBuffer() ); }
+ ;	
+ natural-expression-numeric:
+-	L_NUM_NATURAL						{	if(verbose) {	MOFF;cout << "Converting number " << $1 << endl;MON;}
++	L_NUM_NATURAL						{	if(verbose) {	MOFF;std::cout << "Converting number " << $1 << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											NumericValue v($1, L_LONG); $$ = v.GetLong();
+ 										}
+@@ -652,7 +652,7 @@
+ /*****************************************************************/
+ 
+ character_set-statement:
+-	L_CHARACTER_SET L_LABEL		{	if(verbose) {	MOFF;cout << "character_set-statement                    " << $2 << endl;MON;}
++	L_CHARACTER_SET L_LABEL		{	if(verbose) {	MOFF;std::cout << "character_set-statement                    " << $2 << std::endl;MON;}
+ 											REGISTER_LINE;
+ 											SourceCharacterSet = CharacterSetID($2);
+ 											if ( SourceCharacterSet == String::UNKNOWN )
+@@ -677,7 +677,7 @@
+ /*****************************************************************/
+ offset-statement:
+ 	L_OFFSET natural-expression			{	if(verbose) {	RCTypeArray Types;
+-															MOFF;cout << "offset-statement                           " << $2 << endl;MON; }
++															MOFF;std::cout << "offset-statement                           " << $2 << std::endl;MON; }
+ 											REGISTER_LINE;
+ 										 	CurrentId=((long) NumericValue($2, L_LONG).GetULong() );
+ 										}
+@@ -687,7 +687,7 @@
+ /* system-statement                                              */
+ /*****************************************************************/
+ system-statement:
+-	L_SYSTEM							{	if(verbose) {	MOFF;cout << "system-statement" << endl;MON;}
++	L_SYSTEM							{	if(verbose) {	MOFF;std::cout << "system-statement" << std::endl;MON;}
+ 											CurrentIdStep=-1;
+ 										}
+ ;
+@@ -703,14 +703,14 @@
+ 	L_ENUM L_LABEL '{'					 
+ 	    {	
+ 	    if(verbose) 
+-		{ MOFF;cout << "enum-statement" << endl;MON;} 
++		{ MOFF;std::cout << "enum-statement" << std::endl;MON;} 
+ 	    CurrentEnumName = $2;
+ 	    CurrentEnumValue=0;
+ 	    }
+ |	L_ENUM '{'						
+ 	    {	
+ 	    if(verbose) 
+-		{ MOFF;cout << "enum-statement" << endl;MON;} 
++		{ MOFF;std::cout << "enum-statement" << std::endl;MON;} 
+ 	    CurrentEnumName = "";
+ 	    CurrentEnumValue=0;
+ 	    }
+@@ -792,7 +792,7 @@
+ 	// ABCD corresponds to the number 4321 which becomes ( (4*27 + 3) * 27 + 2) * 27 + 1.
+ 	
+ 	if(verbose) 
+-		{ MOFF;cout << "name-statement                             " << NameStatementValue << endl;MON;}
++		{ MOFF;std::cout << "name-statement                             " << NameStatementValue << std::endl;MON;}
+ 	if ( NameStatementValue.Length() > 4)
+ 		{
+ 		ErrorHandler::OutputErrorLine( "Name must be no longer than four characters");
+@@ -811,7 +811,7 @@
+ 	CurrentId = NewId << 12;
+ 	FormatIdAsHex = 1;
+ 	if(verbose) 
+-		{ MOFF;cout << "Current id                                " << CurrentId << endl;MON;}
++		{ MOFF;std::cout << "Current id                                " << CurrentId << std::endl;MON;}
+ 	}
+ 
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcostrm.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcostrm.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcostrm.cpp	2003-12-27 22:42:20.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcostrm.cpp	2021-02-16 23:30:22.347146661 +0000
+@@ -27,40 +27,40 @@
+ 
+ RCTypeArray gTypes;
+ 
+-// StructItem based ostream functions
++// StructItem based std::ostream functions
+ 
+-ostream& SimpleStructItem::StreamOut ( ostream & os)
++std::ostream& SimpleStructItem::StreamOut ( std::ostream & os)
+ 	{
+-	return ::operator<< ( os, * this);
++	return operator<< ( os, * this);
+ 	}
+ 
+-ostream& ArrayStructItem::StreamOut ( ostream & os)
++std::ostream& ArrayStructItem::StreamOut ( std::ostream & os)
+ 	{
+-	return ::operator<< ( os, * this);
++	return operator<< ( os, * this);
+ 	}
+ 
+-ostream& StructTypeStructItem::StreamOut ( ostream & os)
++std::ostream& StructTypeStructItem::StreamOut ( std::ostream & os)
+ 	{
+-	return ::operator<< ( os, * this);
++	return operator<< ( os, * this);
+ 	}
+ 
+-ostream& StructArrayStructItem::StreamOut ( ostream & os)
++std::ostream& StructArrayStructItem::StreamOut ( std::ostream & os)
+ 	{
+-	return ::operator<< ( os, * this);
++	return operator<< ( os, * this);
+ 	}
+ 
+-ostream& operator<< ( ostream & os, SimpleStructItem & o)
++std::ostream& operator<< ( std::ostream & os, SimpleStructItem & o)
+ 	{
+ 	os << "SimpleStructItem        ";
+ 	os << o.iLabel;
+ 	os << "\t" << gTypes.GetName( o.iItemType);
+ 	os << "\tDefault: " << o.iDefault;
+ 	os << "\tLength limit: " << o.iLengthLimit;
+-	os << endl;
++	os << std::endl;
+ 	return os ;
+ 	}
+ 
+-ostream& operator<< ( ostream & os, ArrayStructItem & o)
++std::ostream& operator<< ( std::ostream & os, ArrayStructItem & o)
+ 	{
+ 	os << "ArrayStructItem         ";
+ 	os << o.iLabel;
+@@ -68,29 +68,29 @@
+ 	os << "\tDefaults: " << o.iDefaults;
+ 	os << "\tLen Type: " << ((o.iLenType == 0) ? "<none>" : gTypes.GetName(o.iLenType));
+ 	os << "\tSize: " << o.iSize;
+-	os << endl;
++	os << std::endl;
+ 	return os ;
+ 	}
+ 
+-ostream& operator<< ( ostream & os, StructTypeStructItem & o)
++std::ostream& operator<< ( std::ostream & os, StructTypeStructItem & o)
+ 	{
+ 	os << "StructTypeStructItem    ";
+ 	os << o.iLabel;
+-	os << endl;
++	os << std::endl;
+ 	return os;
+ 	}
+ 
+-ostream& operator<< ( ostream & os, StructArrayStructItem & o)
++std::ostream& operator<< ( std::ostream & os, StructArrayStructItem & o)
+ 	{
+ 	os << "StructArrayStructItem   ";
+ 	os << o.iLabel;
+ 	os << "\tLen Type: " << ( ( o.iLenType == 0) ? "<none>" : gTypes.GetName( o.iLenType) );
+ 	os << "\tSize: " << o.iSize;
+-	os << endl;
++	os << std::endl;
+ 	return os;
+ 	}
+ 
+-ostream& operator<< ( ostream & os, StructItemArray & o)
++std::ostream& operator<< ( std::ostream & os, StructItemArray & o)
+ 	{
+ 	if (o.Size() == 0)
+ 		return ( os << "<none>");
+@@ -101,16 +101,16 @@
+ 	return os;
+ 	}
+ 
+-ostream& operator<< ( ostream & os, StructHeader & o)
++std::ostream& operator<< ( std::ostream & os, StructHeader & o)
+ 	{
+ 	os << "StructHeader            ";
+-	os << o.iLabel << endl;
+-	os << "\tLen Type: " << ( ( o.iLenType == 0) ? "<none>" : gTypes.GetName( o.iLenType) ) << endl;
++	os << o.iLabel << std::endl;
++	os << "\tLen Type: " << ( ( o.iLenType == 0) ? "<none>" : gTypes.GetName( o.iLenType) ) << std::endl;
+ 	os << o.iSIA;
+ 	return os;
+ 	}
+ 
+-ostream& operator<< ( ostream & os, StructHeaderArray & o)
++std::ostream& operator<< ( std::ostream & os, StructHeaderArray & o)
+ 	{
+ 	if (o.Size() == 0)
+ 		return ( os << "<none>");
+@@ -121,29 +121,29 @@
+ 	return os;
+ 	}
+ 
+-// ResourceItem based ostream functions
++// ResourceItem based std::ostream functions
+ 
+-ostream& SimpleResourceItem::StreamOut(ostream& os)
++std::ostream& SimpleResourceItem::StreamOut(std::ostream& os)
+ 	{
+-	return ::operator<<(os,*this);
++	return operator<<(os,*this);
+ 	}
+ 
+-ostream& ArrayResourceItem::StreamOut(ostream& os)
++std::ostream& ArrayResourceItem::StreamOut(std::ostream& os)
+ 	{
+-	return ::operator<<(os,*this);
++	return operator<<(os,*this);
+ 	}
+ 
+-ostream& StructTypeResourceItem::StreamOut(ostream& os)
++std::ostream& StructTypeResourceItem::StreamOut(std::ostream& os)
+ 	{
+-	return ::operator<<(os,*this);
++	return operator<<(os,*this);
+ 	}
+ 
+-ostream& StructArrayResourceItem::StreamOut(ostream& os)
++std::ostream& StructArrayResourceItem::StreamOut(std::ostream& os)
+ 	{
+-	return ::operator<<(os,*this);
++	return operator<<(os,*this);
+ 	}
+ 
+-ostream & operator<<(ostream& os,SimpleResourceItem& o)
++std::ostream & operator<<(std::ostream& os,SimpleResourceItem& o)
+ 	{
+ 	os << "SimpleResourceItem [" << gTypes.GetName(o.iStructItem->iItemType) << " " << o.iStructItem->iLabel << "]  ";
+ 	switch( o.iStructItem->iItemType)
+@@ -159,59 +159,59 @@
+ 		case L_SRLINK:
+ 			break;	// Don't know value yet.
+ 		}
+-	os << endl;
++	os << std::endl;
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, ArrayResourceItem & o)
++std::ostream & operator<< ( std::ostream & os, ArrayResourceItem & o)
+ 	{
+ 	os << "ArrayResourceItem [" << o.iStructItem->iLabel << "]  ";
+ 	os << o.iValues;
+-	os << endl;
++	os << std::endl;
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, StructTypeResourceItem & o)
++std::ostream & operator<< ( std::ostream & os, StructTypeResourceItem & o)
+ 	{
+ 	static unsigned long level = 0;	// Recursion level.
+-	os << "StructTypeResourceItem (Level " << level++ << ") ["  << o.iStructItem->iLabel << "]  " << endl;
+-	os << "----------------------" << endl;
++	os << "StructTypeResourceItem (Level " << level++ << ") ["  << o.iStructItem->iLabel << "]  " << std::endl;
++	os << "----------------------" << std::endl;
+ 	os << o.iResourceItems;
+-	os << "----------------------" << endl;
++	os << "----------------------" << std::endl;
+ 	level--;
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, StructArrayResourceItem & o)
++std::ostream & operator<< ( std::ostream & os, StructArrayResourceItem & o)
+ 	{
+ 	static unsigned long level = 0;	// Recursion level.
+-	os << "StructArrayResourceItem (Level " << level++ << ") ["  << o.iStructItem->iLabel << "]  " << endl;
++	os << "StructArrayResourceItem (Level " << level++ << ") ["  << o.iStructItem->iLabel << "]  " << std::endl;
+ 	DataType counttype = o.iStructItem->iLenType;
+ 	if (counttype==0)
+ 		counttype = L_WORD;
+ 	unsigned long nitems = o.iArrayOfResourceItemArrays.Size();
+-	os << "ArrayLength [" << gTypes.GetName(counttype) << "] " << nitems << endl;
++	os << "ArrayLength [" << gTypes.GetName(counttype) << "] " << nitems << std::endl;
+ 	if (nitems > 0)
+ 		{
+-		os << "----------------------" << endl;
++		os << "----------------------" << std::endl;
+ 		os << o.iArrayOfResourceItemArrays;
+-		os << "----------------------" << endl;
++		os << "----------------------" << std::endl;
+ 		}
+ 	level--;
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, ResourceHeader & o)
++std::ostream & operator<< ( std::ostream & os, ResourceHeader & o)
+ 	{
+ 	os << "ResourceHeader          ";
+-	os << o.iLabel << endl;
++	os << o.iLabel << std::endl;
+ 	os << o.iRIA;
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, ResourceItemArray & o)
++std::ostream & operator<< ( std::ostream & os, ResourceItemArray & o)
+ 	{
+-	os << "++ResourceItemArray" << endl;
++	os << "++ResourceItemArray" << std::endl;
+ 	if ( o.iLenType != 0)
+ 		{
+ 		os << "LenType: " << gTypes.GetName( o.iLenType) << "\t";
+@@ -225,9 +225,9 @@
+ 	return os;
+ 	}
+ 
+-ostream & operator<< ( ostream & os, ResourceItemArrayArray & o)
++std::ostream & operator<< ( std::ostream & os, ResourceItemArrayArray & o)
+ 	{
+-	os << "--ResourceItemArrayArray" << endl;
++	os << "--ResourceItemArrayArray" << std::endl;
+ 	if ( o.Size() == 0)
+ 		return ( os << "<none>");
+ 	ResourceItemArrayArrayIterator	next( o);
+@@ -390,7 +390,7 @@
+ 		case L_LONG:
+ 		case L_DOUBLE:
+ 			assert ( aValue.Length() > 0);
+-			if(verbose) { MOFF; cout << "Converting " << aValue << " to number." << endl; MON;}
++			if(verbose) { MOFF; std::cout << "Converting " << aValue << " to number." << std::endl; MON;}
+ 			NumericValue( aValue, aItemType).StreamOut(aStream);
+ 			break;
+ 		case L_SRLINK:
+@@ -424,7 +424,7 @@
+ 				break;
+ 			}
+ 		default:
+-			{ 	MOFF; cout << "RCBinaryStream:Unknown type " << gTypes.GetName( aItemType) << endl; MON;}
++			{ 	MOFF; std::cout << "RCBinaryStream:Unknown type " << gTypes.GetName( aItemType) << std::endl; MON;}
+ 		}
+ 	}
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcscan.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcscan.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/rcscan.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/rcscan.cpp	2021-02-16 23:30:57.263241794 +0000
+@@ -31,8 +31,8 @@
+ 	if(yylineno)
+ 		{
+ 		MOFF;
+-		cerr << iFileLineHandler.GetCurrentFile() << "(";
+-		cerr << iFileLineHandler.GetErrorLine(yylineno) << ") : ";
++		std::cerr << iFileLineHandler.GetCurrentFile() << "(";
++		std::cerr << iFileLineHandler.GetErrorLine(yylineno) << ") : ";
+ 		MON;
+ 		}
+ 
+@@ -43,7 +43,7 @@
+     vsprintf(buffer, aCharPtr, va );
+     va_end(va);
+ 
+-	cerr << buffer << endl;
++	std::cerr << buffer << std::endl;
+ 	iErrorFound = 1;
+ 	}
+ 
+diff -Naur sdk2unix-1.9/helpers/rcomp-7.0.1/src/stringar.cpp sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/stringar.cpp
+--- sdk2unix-1.9/helpers/rcomp-7.0.1/src/stringar.cpp	2003-12-27 22:42:19.000000000 +0000
++++ sdk2unix-1.9-new/helpers/rcomp-7.0.1/src/stringar.cpp	2021-02-16 23:31:18.867301264 +0000
+@@ -31,9 +31,9 @@
+ 	return ( String *) ArrayIterator::operator() ();
+ 	}
+ 
+-// ostream functions
++// std::ostream functions
+ 
+-ostream& operator<< ( ostream & os, StringArray & s)
++std::ostream& operator<< ( std::ostream & os, StringArray & s)
+ 	{
+ 	if (s.Size() == 0)
+ 		return ( os << "<none>");

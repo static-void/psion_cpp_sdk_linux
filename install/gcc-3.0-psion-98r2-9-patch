@@ -1,0 +1,1060 @@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bfd/archive.c gcc-3.0-psion-98r2-9-src/src/bfd/archive.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/bfd/archive.c	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bfd/archive.c	2021-02-16 22:34:32.603351972 +0000
+@@ -167,6 +167,22 @@
+ #define arch_eltdata(bfd) ((struct areltdata *)((bfd)->arelt_data))
+ #define arch_hdr(bfd) ((struct ar_hdr *)arch_eltdata(bfd)->arch_header)
+ 
++void
++_bfd_ar_spacepad (char *p, size_t n, const char *fmt, long val)
++{
++  static char buf[20];
++  size_t len;
++  snprintf (buf, sizeof (buf), fmt, val);
++  len = strlen (buf);
++  if (len < n)
++    {
++      memcpy (p, buf, len);
++      memset (p + len, ' ', n - len);
++    }
++  else
++    memcpy (p, buf, n);
++}
++
+ static char *get_extended_arelt_filename PARAMS ((bfd *arch,
+ 						  const char *name));
+ static boolean do_slurp_bsd_armap PARAMS ((bfd *abfd));
+@@ -1319,15 +1335,7 @@
+ 	  hdr->ar_name[0] = ar_padchar (current);
+ 	  /* We know there will always be enough room (one of the few
+ 	     cases where you may safely use sprintf). */
+-	  sprintf ((hdr->ar_name) + 1, "%-d", (unsigned) (strptr - *tabloc));
+-	  /* Kinda Kludgy.  We should just use the returned value of
+-	     sprintf but not all implementations get this right */
+-	  {
+-	    char *temp = hdr->ar_name + 2;
+-	    for (; temp < hdr->ar_name + maxname; temp++)
+-	      if (*temp == '\0')
+-		*temp = ' ';
+-	  }
++	  _bfd_ar_spacepad (hdr->ar_name + 1, maxname - 1, "%-ld", (unsigned) (strptr - *tabloc));
+ 	  strptr += thislen + 1;
+ 	  if (trailing_slash)
+ 	    ++strptr;
+@@ -1351,7 +1359,6 @@
+   struct stat status;
+   struct areltdata *ared;
+   struct ar_hdr *hdr;
+-  char *temp, *temp1;
+ 
+   if (stat (filename, &status) != 0)
+     {
+@@ -1368,25 +1375,15 @@
+   /* ar headers are space padded, not null padded! */
+   memset ((PTR) hdr, ' ', sizeof (struct ar_hdr));
+ 
+-  strncpy (hdr->ar_fmag, ARFMAG, 2);
+-
+-  /* Goddamned sprintf doesn't permit MAXIMUM field lengths */
+-  sprintf ((hdr->ar_date), "%-12ld", (long) status.st_mtime);
+-  sprintf ((hdr->ar_uid), "%ld", (long) status.st_uid);
+-  sprintf ((hdr->ar_gid), "%ld", (long) status.st_gid);
+-  sprintf ((hdr->ar_mode), "%-8o", (unsigned int) status.st_mode);
+-  sprintf ((hdr->ar_size), "%-10ld", (long) status.st_size);
+-  /* Correct for a lossage in sprintf whereby it null-terminates.  I cannot
+-     understand how these C losers could design such a ramshackle bunch of
+-     IO operations */
+-  temp = (char *) hdr;
+-  temp1 = temp + sizeof (struct ar_hdr) - 2;
+-  for (; temp < temp1; temp++)
+-    {
+-      if (*temp == '\0')
+-	*temp = ' ';
+-    }
+-  strncpy (hdr->ar_fmag, ARFMAG, 2);
++  _bfd_ar_spacepad (hdr->ar_date, sizeof (hdr->ar_date), "%-12ld", (long) status.st_mtime);
++  _bfd_ar_spacepad (hdr->ar_uid, sizeof (hdr->ar_uid), "%ld", (long) status.st_uid);
++  _bfd_ar_spacepad (hdr->ar_gid, sizeof (hdr->ar_gid), "%ld",
++                      (long) status.st_gid);
++  _bfd_ar_spacepad (hdr->ar_mode, sizeof (hdr->ar_mode), "%-8lo",
++                    (unsigned int) status.st_mode);
++  _bfd_ar_spacepad (hdr->ar_size, sizeof (hdr->ar_size), "%-10ld",
++                    (long) status.st_size);
++  memcpy (hdr->ar_fmag, ARFMAG, 2);
+   ared->parsed_size = status.st_size;
+   ared->arch_header = (char *) hdr;
+ 
+@@ -1571,7 +1568,6 @@
+   boolean makemap = bfd_has_map (arch);
+   boolean hasobjects = false;	/* if no .o's, don't bother to make a map */
+   bfd_size_type wrote;
+-  unsigned int i;
+   int tries;
+ 
+   /* Verify the viability of all entries; if any of them live in the
+@@ -1632,16 +1628,13 @@
+     {
+       struct ar_hdr hdr;
+ 
+-      memset ((char *) (&hdr), 0, sizeof (struct ar_hdr));
+-      strcpy (hdr.ar_name, ename);
+-      /* Round size up to even number in archive header.  */
+-      sprintf (&(hdr.ar_size[0]), "%-10d",
+-	       (int) ((elength + 1) & ~1));
+-      strncpy (hdr.ar_fmag, ARFMAG, 2);
+-      for (i = 0; i < sizeof (struct ar_hdr); i++)
+-	if (((char *) (&hdr))[i] == '\0')
+-	  (((char *) (&hdr))[i]) = ' ';
+-      if ((bfd_write ((char *) &hdr, 1, sizeof (struct ar_hdr), arch)
++      memset (&hdr, ' ', sizeof (struct ar_hdr));
++      memcpy (hdr.ar_name, ename, strlen (ename));
++	  /* Round size up to even number in archive header.  */
++      _bfd_ar_spacepad (hdr.ar_size, sizeof (hdr.ar_size), "%-10ld",
++                        (int) ((elength + 1) & ~(bfd_size_type) 1));
++      memcpy (hdr.ar_fmag, ARFMAG, 2);
++	  if ((bfd_write ((char *) &hdr, 1, sizeof (struct ar_hdr), arch)
+ 	   != sizeof (struct ar_hdr))
+ 	  || bfd_write (etable, 1, elength, arch) != elength)
+ 	return false;
+@@ -1876,30 +1869,27 @@
+   unsigned int count;
+   struct ar_hdr hdr;
+   struct stat statbuf;
+-  unsigned int i;
+ 
+   firstreal = mapsize + elength + sizeof (struct ar_hdr) + SARMAG;
+ 
+   stat (arch->filename, &statbuf);
+-  memset ((char *) (&hdr), 0, sizeof (struct ar_hdr));
+-  sprintf (hdr.ar_name, RANLIBMAG);
++  memset (&hdr, ' ', sizeof (struct ar_hdr));
++  memcpy (hdr.ar_name, RANLIBMAG, strlen (RANLIBMAG));
+   /* Remember the timestamp, to keep it holy.  But fudge it a little.  */
+   bfd_ardata (arch)->armap_timestamp = statbuf.st_mtime + ARMAP_TIME_OFFSET;
+   bfd_ardata (arch)->armap_datepos = (SARMAG
+ 				      + offsetof (struct ar_hdr, ar_date[0]));
+-  sprintf (hdr.ar_date, "%ld", bfd_ardata (arch)->armap_timestamp);
++  _bfd_ar_spacepad (hdr.ar_date, sizeof (hdr.ar_date), "%ld",
++                    bfd_ardata (arch)->armap_timestamp);
+ #ifndef _WIN32
+-  sprintf (hdr.ar_uid, "%ld", (long) getuid ());
+-  sprintf (hdr.ar_gid, "%ld", (long) getgid ());
++  _bfd_ar_spacepad (hdr.ar_uid, sizeof (hdr.ar_uid), "%ld", (long) getuid ());
++  _bfd_ar_spacepad (hdr.ar_gid, sizeof (hdr.ar_gid), "%ld", (long) getgid ());
+ #else
+-  sprintf (hdr.ar_uid, "%ld", (long) 666);
+-  sprintf (hdr.ar_gid, "%ld", (long) 42);
++  _bfd_ar_spacepad (hdr.ar_uid, sizeof (hdr.ar_uid), "%ld", (long) 666);
++  _bfd_ar_spacepad (hdr.ar_gid, sizeof (hdr.ar_gid), "%ld", (long) 42);
+ #endif
+-  sprintf (hdr.ar_size, "%-10d", (int) mapsize);
+-  strncpy (hdr.ar_fmag, ARFMAG, 2);
+-  for (i = 0; i < sizeof (struct ar_hdr); i++)
+-    if (((char *) (&hdr))[i] == '\0')
+-      (((char *) (&hdr))[i]) = ' ';
++  _bfd_ar_spacepad (hdr.ar_size, sizeof (hdr.ar_size), "%-10ld", (int) mapsize);
++  memcpy (hdr.ar_fmag, ARFMAG, 2);
+   if (bfd_write ((char *) &hdr, 1, sizeof (struct ar_hdr), arch)
+       != sizeof (struct ar_hdr))
+     return false;
+@@ -1964,7 +1954,6 @@
+ {
+   struct stat archstat;
+   struct ar_hdr hdr;
+-  unsigned int i;
+ 
+   /* Flush writes, get last-write timestamp from file, and compare it
+      to the timestamp IN the file.  */
+@@ -1981,12 +1970,9 @@
+   bfd_ardata (arch)->armap_timestamp = archstat.st_mtime + ARMAP_TIME_OFFSET;
+ 
+   /* Prepare an ASCII version suitable for writing.  */
+-  memset (hdr.ar_date, 0, sizeof (hdr.ar_date));
+-  sprintf (hdr.ar_date, "%ld", bfd_ardata (arch)->armap_timestamp);
+-  for (i = 0; i < sizeof (hdr.ar_date); i++)
+-    if (hdr.ar_date[i] == '\0')
+-      (hdr.ar_date)[i] = ' ';
+-
++  memset (hdr.ar_date, ' ', sizeof (hdr.ar_date));
++  _bfd_ar_spacepad (hdr.ar_date, sizeof (hdr.ar_date), "%ld",
++                    bfd_ardata (arch)->armap_timestamp);
+   /* Write it into the file.  */
+   bfd_ardata (arch)->armap_datepos = (SARMAG
+ 				      + offsetof (struct ar_hdr, ar_date[0]));
+@@ -2033,7 +2019,6 @@
+   bfd *current = arch->archive_head;
+   unsigned int count;
+   struct ar_hdr hdr;
+-  unsigned int i;
+   int padit = mapsize & 1;
+ 
+   if (padit)
+@@ -2045,19 +2030,17 @@
+ 			     + sizeof (struct ar_hdr)
+ 			     + SARMAG);
+ 
+-  memset ((char *) (&hdr), 0, sizeof (struct ar_hdr));
++  memset (&hdr, ' ', sizeof (struct ar_hdr));
+   hdr.ar_name[0] = '/';
+-  sprintf (hdr.ar_size, "%-10d", (int) mapsize);
+-  sprintf (hdr.ar_date, "%ld", (long) time (NULL));
++  _bfd_ar_spacepad (hdr.ar_size, sizeof (hdr.ar_size), "%-10ld",
++                    (int) mapsize);
++  _bfd_ar_spacepad (hdr.ar_date, sizeof (hdr.ar_date), "%ld",
++                    (long) time (NULL));
+   /* This, at least, is what Intel coff sets the values to.: */
+-  sprintf ((hdr.ar_uid), "%d", 0);
+-  sprintf ((hdr.ar_gid), "%d", 0);
+-  sprintf ((hdr.ar_mode), "%-7o", (unsigned) 0);
+-  strncpy (hdr.ar_fmag, ARFMAG, 2);
+-
+-  for (i = 0; i < sizeof (struct ar_hdr); i++)
+-    if (((char *) (&hdr))[i] == '\0')
+-      (((char *) (&hdr))[i]) = ' ';
++  _bfd_ar_spacepad (hdr.ar_uid, sizeof (hdr.ar_uid), "%ld", 0);
++  _bfd_ar_spacepad (hdr.ar_gid, sizeof (hdr.ar_gid), "%ld", 0);
++  _bfd_ar_spacepad (hdr.ar_mode, sizeof (hdr.ar_mode), "%-7lo", 0);
++  memcpy (hdr.ar_fmag, ARFMAG, 2);
+ 
+   /* Write the ar header for this item and the number of symbols */
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bfd/bfd-in2.h gcc-3.0-psion-98r2-9-src/src/bfd/bfd-in2.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/bfd/bfd-in2.h	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bfd/bfd-in2.h	2021-02-16 21:17:54.051036698 +0000
+@@ -701,20 +701,26 @@
+ /* ARM Interworking support.  Called from linker.  */
+ #ifdef COFF_IMAGE_WITH_PE
+ static
++#else
++extern
+ #endif
+-extern boolean bfd_arm_allocate_interworking_sections
++boolean bfd_arm_allocate_interworking_sections
+   PARAMS ((struct bfd_link_info *));
+ 
+ #ifdef COFF_IMAGE_WITH_PE
+ static
++#else
++extern
+ #endif
+-extern boolean bfd_arm_process_before_allocation
++boolean bfd_arm_process_before_allocation
+   PARAMS ((bfd *, struct bfd_link_info *, int));
+ 
+ #ifdef COFF_IMAGE_WITH_PE
+ static
++#else
++extern
+ #endif
+-extern boolean bfd_arm_get_bfd_for_interworking
++boolean bfd_arm_get_bfd_for_interworking
+   PARAMS ((bfd *, struct bfd_link_info *));
+ 
+ /* And more from the source.  */
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bfd/libbfd.h gcc-3.0-psion-98r2-9-src/src/bfd/libbfd.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/bfd/libbfd.h	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bfd/libbfd.h	2021-02-16 22:08:03.556956319 +0000
+@@ -141,6 +141,7 @@
+ 				   struct orl *map, unsigned int orl_count, int stridx));
+ 
+ extern PTR _bfd_generic_read_ar_hdr PARAMS ((bfd *));
++extern void _bfd_ar_spacepad(char *, size_t, const char *, long);
+ 
+ extern PTR _bfd_generic_read_ar_hdr_mag PARAMS ((bfd *, const char *));
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bfd/libbfd-in.h gcc-3.0-psion-98r2-9-src/src/bfd/libbfd-in.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/bfd/libbfd-in.h	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bfd/libbfd-in.h	2021-02-16 22:08:10.900967428 +0000
+@@ -141,6 +141,7 @@
+ 				   struct orl *map, unsigned int orl_count, int stridx));
+ 
+ extern PTR _bfd_generic_read_ar_hdr PARAMS ((bfd *));
++extern void _bfd_ar_spacepad(char *, size_t, const char *, long);
+ 
+ extern PTR _bfd_generic_read_ar_hdr_mag PARAMS ((bfd *, const char *));
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bfd/pei-arm.c gcc-3.0-psion-98r2-9-src/src/bfd/pei-arm.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/bfd/pei-arm.c	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bfd/pei-arm.c	2021-02-16 21:18:40.131226130 +0000
+@@ -17,7 +17,6 @@
+ along with this program; if not, write to the Free Software
+ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+ 
+-#include "bfd.h"
+ #include "sysdep.h"
+ 
+ #ifndef TARGET_LITTLE_SYM
+@@ -33,4 +32,5 @@
+ #define PCRELOFFSET         true
+ #define COFF_LONG_SECTION_NAMES
+ 
++#include "bfd.h"
+ #include "coff-arm.c"
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/config/arm/arm.c gcc-3.0-psion-98r2-9-src/src/gcc/config/arm/arm.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/config/arm/arm.c	2003-12-19 14:18:21.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/config/arm/arm.c	2021-02-16 21:44:46.426797725 +0000
+@@ -8994,7 +8994,7 @@
+ 	      )
+ 	    continue;
+ 
+-	  DECL_RTL (sym) = new;
++	  SET_DECL_RTL (sym, new);
+ 	}
+       
+       replace_symbols_in_block (BLOCK_SUBBLOCKS (block), orig, new);
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/config/arm/arm.h gcc-3.0-psion-98r2-9-src/src/gcc/config/arm/arm.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/config/arm/arm.h	2004-08-29 21:46:23.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/gcc/config/arm/arm.h	2021-02-16 21:19:49.147490781 +0000
+@@ -525,7 +525,7 @@
+ };
+ 
+ /* Recast the program mode class to be the prog_mode attribute */
+-#define arm_prog_mode ((enum attr_prog_mode) arm_prgmode)
++#define arm_prog_mode (/*(enum attr_prog_mode)*/ arm_prgmode)
+ 
+ extern enum prog_mode_type arm_prgmode;
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/config/svr4.h gcc-3.0-psion-98r2-9-src/src/gcc/config/svr4.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/config/svr4.h	2003-10-14 15:33:45.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/gcc/config/svr4.h	2021-02-16 20:41:49.982533982 +0000
+@@ -90,7 +90,7 @@
+ 
+ #undef  ASM_SPEC
+ #define ASM_SPEC \
+-  "%{v:-V} %{Qy:} %{!Qn:-Qy} %{n} %{T} %{Ym,*} %{Yd,*} %{Wa,*:%*}"
++  "%{v:-V} %{Qy:} %{!Qn:-Qy} %{n} %{T} %{Ym,*} %{Yd,*} %{Wa,*:%*} --32"
+ 
+ /* svr4 assemblers need the `-' (indicating input from stdin) to come after
+    the -o option (and its argument) for some reason.  If we try to put it
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/cfns.h gcc-3.0-psion-98r2-9-src/src/gcc/cp/cfns.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/cfns.h	2003-11-12 11:48:43.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/cfns.h	2021-02-16 21:57:01.875950123 +0000
+@@ -4,9 +4,6 @@
+ __inline
+ #endif
+ static unsigned int hash PARAMS ((const char *, unsigned int));
+-#ifdef __GNUC__
+-__inline
+-#endif
+ const char * libc_name_p PARAMS ((const char *, unsigned int));
+ /* maximum key range = 1020, duplicates = 1 */
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/class.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/class.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/class.c	2003-11-12 11:48:43.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/class.c	2021-02-16 21:37:01.694010019 +0000
+@@ -3724,7 +3724,7 @@
+ 
+   /* Build the FIELD_DECL.  */
+   field = build_decl (FIELD_DECL, name, type);
+-  DECL_ASSEMBLER_NAME (field) = assembler_name;
++  SET_DECL_ASSEMBLER_NAME (field,  assembler_name);
+   DECL_VIRTUAL_P (field) = 1;
+   DECL_ARTIFICIAL (field) = 1;
+   DECL_FIELD_CONTEXT (field) = class_type;
+@@ -4235,7 +4235,7 @@
+   DECL_CLONED_FUNCTION (clone) = fn;
+   /* Reset the function name.  */
+   DECL_NAME (clone) = name;
+-  DECL_ASSEMBLER_NAME (clone) = DECL_NAME (clone);
++  SET_DECL_ASSEMBLER_NAME (clone,  DECL_NAME (clone));
+   /* There's no pending inline data for this function.  */
+   DECL_PENDING_INLINE_INFO (clone) = NULL;
+   DECL_PENDING_INLINE_P (clone) = 0;
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/decl2.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/decl2.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/decl2.c	2003-12-11 13:05:48.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/decl2.c	2021-02-16 21:39:19.494252294 +0000
+@@ -1096,7 +1096,7 @@
+       if (flag_new_abi) 
+ 	set_mangled_name_for_decl (function);
+       else
+-	DECL_ASSEMBLER_NAME (function) = build_destructor_name (ctype);
++	SET_DECL_ASSEMBLER_NAME (function,  build_destructor_name (ctype));
+ 
+       TYPE_HAS_DESTRUCTOR (ctype) = 1;
+     }
+@@ -1572,10 +1572,10 @@
+     {
+       DECL_INITIAL (decl) = error_mark_node;
+       if (flag_new_abi)
+-	DECL_ASSEMBLER_NAME (decl) = mangle_decl (decl);
++	SET_DECL_ASSEMBLER_NAME (decl,  mangle_decl (decl));
+       else
+-	DECL_ASSEMBLER_NAME (decl) 
+-	  = build_static_name (current_class_type, DECL_NAME (decl));
++	SET_DECL_ASSEMBLER_NAME (decl,
++	  build_static_name (current_class_type, DECL_NAME (decl)));
+     }
+   if (! processing_template_decl)
+     {
+@@ -1708,14 +1708,14 @@
+       
+       /* Now that we've updated the context, we need to remangle the
+ 	 name for this TYPE_DECL.  */
+-      DECL_ASSEMBLER_NAME (value) = DECL_NAME (value);
++      SET_DECL_ASSEMBLER_NAME (value,  DECL_NAME (value));
+       if (!uses_template_parms (value)) 
+ 	{
+ 	  if (flag_new_abi)
+-	    DECL_ASSEMBLER_NAME (value) = mangle_type (TREE_TYPE (value));
++	    SET_DECL_ASSEMBLER_NAME (value,  mangle_type (TREE_TYPE (value)));
+ 	  else
+-	    DECL_ASSEMBLER_NAME (value) =
+-	      get_identifier (build_overload_name (TREE_TYPE (value), 1, 1));
++	    SET_DECL_ASSEMBLER_NAME (value,
++	      get_identifier (build_overload_name (TREE_TYPE (value), 1, 1)));
+ 	}
+ 
+       if (processing_template_decl)
+@@ -1816,7 +1816,7 @@
+ 	  /* This must override the asm specifier which was placed
+ 	     by grokclassfn.  Lay this out fresh.  */
+ 	  DECL_RTL (value) = NULL_RTX;
+-	  DECL_ASSEMBLER_NAME (value) = get_identifier (asmspec);
++	  SET_DECL_ASSEMBLER_NAME (value,  get_identifier (asmspec));
+ 	}
+       cp_finish_decl (value, init, asmspec_tree, flags);
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/decl.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/decl.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/decl.c	2003-11-24 15:50:32.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/decl.c	2021-02-16 21:33:54.021662012 +0000
+@@ -475,6 +475,10 @@
+ 
+ /* The binding level currently in effect.  */
+ 
++#define set_current_binding_level(val)  \
++  if (cfun) cp_function_chain->bindings = (val);  \
++  else scope_chain->bindings = (val)
++
+ #define current_binding_level			\
+   (cfun						\
+    ? cp_function_chain->bindings		\
+@@ -523,7 +527,7 @@
+      are active.  */
+   memset ((char*) newlevel, 0, sizeof (struct binding_level));
+   newlevel->level_chain = current_binding_level;
+-  current_binding_level = newlevel;
++  set_current_binding_level(newlevel);
+   newlevel->tag_transparent = tag_transparent;
+   newlevel->more_cleanups_ok = 1;
+ 
+@@ -579,7 +583,7 @@
+ #endif /* defined(DEBUG_CP_BINDING_LEVELS) */
+   {
+     register struct binding_level *level = current_binding_level;
+-    current_binding_level = current_binding_level->level_chain;
++	set_current_binding_level(current_binding_level->level_chain);
+     level->level_chain = free_binding_level;
+ #if 0 /* defined(DEBUG_CP_BINDING_LEVELS) */
+     if (level->binding_depth != binding_depth)
+@@ -594,7 +598,7 @@
+ suspend_binding_level ()
+ {
+   if (class_binding_level)
+-    current_binding_level = class_binding_level;
++	set_current_binding_level(class_binding_level);
+ 
+   if (global_binding_level)
+     {
+@@ -616,7 +620,7 @@
+     }
+   is_class_level = 0;
+ #endif /* defined(DEBUG_CP_BINDING_LEVELS) */
+-  current_binding_level = current_binding_level->level_chain;
++  set_current_binding_level(current_binding_level->level_chain);
+   find_class_binding_level ();
+ }
+ 
+@@ -629,7 +633,7 @@
+   my_friendly_assert(!class_binding_level, 386);
+   /* Also, resuming a non-directly nested namespace is a no-no.  */
+   my_friendly_assert(b->level_chain == current_binding_level, 386);
+-  current_binding_level = b;
++  set_current_binding_level(b);
+ #if defined(DEBUG_CP_BINDING_LEVELS)
+   b->binding_depth = binding_depth;
+   indent ();
+@@ -2813,7 +2817,7 @@
+ 	    DECL_IGNORED_P (d) = 1;
+ 
+ 	  TYPE_CONTEXT (type) = DECL_CONTEXT (d);
+-	  DECL_ASSEMBLER_NAME (d) = DECL_NAME (d);
++	  SET_DECL_ASSEMBLER_NAME (d, DECL_NAME (d));
+ 
+ 	  /* If this is a local class, keep track of it.  We need this
+ 	     information for name-mangling, and so that it is possible to find
+@@ -2828,10 +2832,10 @@
+ 	  if (!uses_template_parms (type))
+ 	    {
+ 	      if (flag_new_abi)
+-		DECL_ASSEMBLER_NAME (d) = mangle_type (type);
++		SET_DECL_ASSEMBLER_NAME (d, mangle_type (type));
+ 	      else
+-		DECL_ASSEMBLER_NAME (d)
+-		  = get_identifier (build_overload_name (type, 1, 1));
++		SET_DECL_ASSEMBLER_NAME (d,
++		  get_identifier (build_overload_name (type, 1, 1)));
+ 	    }
+         }
+       if (b->parm_flag == 2)
+@@ -3153,7 +3157,7 @@
+ 	     will be banished.  */
+ 	  DECL_LANGUAGE (olddecl) = DECL_LANGUAGE (newdecl);
+ 	  DECL_RTL (olddecl) = DECL_RTL (newdecl);
+-	  DECL_ASSEMBLER_NAME (olddecl) = DECL_ASSEMBLER_NAME (newdecl);
++	  SET_DECL_ASSEMBLER_NAME (olddecl, DECL_ASSEMBLER_NAME (newdecl));
+ 	  SET_IDENTIFIER_GLOBAL_VALUE (DECL_ASSEMBLER_NAME (newdecl),
+ 				       newdecl);
+ 	}
+@@ -3620,7 +3624,7 @@
+       if (! types_match)
+ 	{
+ 	  DECL_LANGUAGE (olddecl) = DECL_LANGUAGE (newdecl);
+-	  DECL_ASSEMBLER_NAME (olddecl) = DECL_ASSEMBLER_NAME (newdecl);
++	  SET_DECL_ASSEMBLER_NAME (olddecl, DECL_ASSEMBLER_NAME (newdecl));
+ 	  DECL_RTL (olddecl) = DECL_RTL (newdecl);
+ 	}
+       if (! types_match || new_defines_function)
+@@ -3670,7 +3674,7 @@
+   TREE_ADDRESSABLE (newdecl) = TREE_ADDRESSABLE (olddecl);
+   TREE_ASM_WRITTEN (newdecl) = TREE_ASM_WRITTEN (olddecl);
+   DECL_COMMON (newdecl) = DECL_COMMON (olddecl);
+-  DECL_ASSEMBLER_NAME (newdecl) = DECL_ASSEMBLER_NAME (olddecl);
++  SET_DECL_ASSEMBLER_NAME (newdecl, DECL_ASSEMBLER_NAME (olddecl));
+ 
+   if (TREE_CODE (newdecl) == FUNCTION_DECL)
+     {
+@@ -4231,9 +4235,9 @@
+   else
+     {
+       b = current_binding_level;
+-      current_binding_level = level;
++	  set_current_binding_level(level);
+       x = pushdecl (x);
+-      current_binding_level = b;
++	  set_current_binding_level(b);
+     }
+   current_function_decl = function_decl;
+   return x;
+@@ -6327,7 +6331,7 @@
+   current_lang_name = lang_name_c;
+ 
+   current_function_decl = NULL_TREE;
+-  current_binding_level = NULL_BINDING_LEVEL;
++  set_current_binding_level(NULL_BINDING_LEVEL);
+   free_binding_level = NULL_BINDING_LEVEL;
+ 
+   build_common_tree_nodes (flag_signed_char);
+@@ -6671,7 +6675,7 @@
+      we cannot change DECL_ASSEMBLER_NAME until we have installed this
+      function in the namespace.  */
+   if (libname)
+-    DECL_ASSEMBLER_NAME (decl) = get_identifier (libname);
++    SET_DECL_ASSEMBLER_NAME (decl,  get_identifier (libname));
+   make_decl_rtl (decl, NULL);
+ 
+   return decl;
+@@ -7514,10 +7518,10 @@
+ 	  if (TREE_PUBLIC (decl))
+ 	    {
+ 	      if (flag_new_abi)
+-		DECL_ASSEMBLER_NAME (decl) = mangle_decl (decl);
++		SET_DECL_ASSEMBLER_NAME (decl,  mangle_decl (decl));
+ 	      else
+-		DECL_ASSEMBLER_NAME (decl)
+-		  = build_static_name (current_function_decl, DECL_NAME (decl));
++		SET_DECL_ASSEMBLER_NAME (decl,
++		  build_static_name (current_function_decl, DECL_NAME (decl)));
+ 	    }
+ 	  else
+ 	    {
+@@ -7706,7 +7710,7 @@
+ 
+   /* Set the DECL_ASSEMBLER_NAME for the variable.  */
+   if (asmspec)
+-    DECL_ASSEMBLER_NAME (decl) = get_identifier (asmspec);
++    SET_DECL_ASSEMBLER_NAME (decl,  get_identifier (asmspec));
+ 
+   /* We don't create any RTL for local variables.  */
+   if (DECL_FUNCTION_SCOPE_P (decl) && !TREE_STATIC (decl))
+@@ -8019,7 +8023,7 @@
+       /* This must override the asm specifier which was placed by
+ 	 grokclassfn.  Lay this out fresh.  */
+       DECL_RTL (TREE_TYPE (decl)) = NULL_RTX;
+-      DECL_ASSEMBLER_NAME (decl) = get_identifier (asmspec);
++      SET_DECL_ASSEMBLER_NAME (decl,  get_identifier (asmspec));
+       make_decl_rtl (decl, asmspec);
+     }
+ 
+@@ -8957,10 +8961,10 @@
+       if (!uses_template_parms (decl))
+ 	{
+ 	  if (flag_new_abi)
+-	    DECL_ASSEMBLER_NAME (decl) = mangle_decl (decl);
++	    SET_DECL_ASSEMBLER_NAME (decl,  mangle_decl (decl));
+ 	  else
+-	    DECL_ASSEMBLER_NAME (decl) = build_static_name (basetype,
+-							    declarator);
++	    SET_DECL_ASSEMBLER_NAME (decl,  build_static_name (basetype,
++							    declarator));
+ 	}
+     }
+   else
+@@ -8988,10 +8992,10 @@
+       if (declarator && context && current_lang_name != lang_name_c)
+ 	{
+ 	  if (flag_new_abi)
+-	    DECL_ASSEMBLER_NAME (decl) = mangle_decl (decl);
++	    SET_DECL_ASSEMBLER_NAME (decl,  mangle_decl (decl));
+ 	  else
+-	    DECL_ASSEMBLER_NAME (decl)
+-	      = build_static_name (context, declarator);
++	    SET_DECL_ASSEMBLER_NAME (decl,
++	      build_static_name (context, declarator));
+ 	}
+     }
+ 
+@@ -9860,10 +9864,10 @@
+   if (decl_context == NORMAL && !toplevel_bindings_p ())
+     {
+       struct binding_level *b = current_binding_level;
+-      current_binding_level = b->level_chain;
++      set_current_binding_level(b->level_chain);
+       if (current_binding_level != 0 && toplevel_bindings_p ())
+ 	decl_context = PARM;
+-      current_binding_level = b;
++      set_current_binding_level(b);
+     }
+ 
+   if (name == NULL)
+@@ -11027,7 +11031,7 @@
+ 	      = TYPE_IDENTIFIER (type);
+ 
+ 	  if (flag_new_abi)
+-	    DECL_ASSEMBLER_NAME (decl) = mangle_type (type);
++	    SET_DECL_ASSEMBLER_NAME (decl,  mangle_type (type));
+ 	  else
+ 	    {
+ 	      /* XXX Temporarily set the scope.
+@@ -11039,9 +11043,9 @@
+ 	      else
+ 		DECL_CONTEXT (decl) = FROB_CONTEXT (current_namespace);
+ 
+-	      DECL_ASSEMBLER_NAME (decl) = DECL_NAME (decl);
+-	      DECL_ASSEMBLER_NAME (decl)
+-		= get_identifier (build_overload_name (type, 1, 1));
++	      SET_DECL_ASSEMBLER_NAME (decl,  DECL_NAME (decl));
++	      SET_DECL_ASSEMBLER_NAME (decl,
++		get_identifier (build_overload_name (type, 1, 1)));
+ 	      DECL_CONTEXT (decl) = NULL_TREE;
+ 	    }
+ 
+@@ -13445,7 +13449,7 @@
+      FIXME factor out the non-RTL stuff.  */
+   bl = current_binding_level;
+   init_function_start (decl1, input_filename, lineno);
+-  current_binding_level = bl;
++  set_current_binding_level(bl);
+ 
+   /* Even though we're inside a function body, we still don't want to
+      call expand_expr to calculate the size of a variable-sized array.
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/Make-lang.in gcc-3.0-psion-98r2-9-src/src/gcc/cp/Make-lang.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/Make-lang.in	2003-11-20 15:18:02.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/Make-lang.in	2021-02-17 00:24:51.746832368 +0000
+@@ -127,9 +127,9 @@
+ 
+ $(srcdir)/cp/parse.h $(srcdir)/cp/parse.c: $(srcdir)/cp/parse.y
+ 	@echo "Expect 33 shift/reduce conflicts and 58 reduce/reduce conflicts."
+-	cd $(srcdir)/cp; $(BISON) $(BISONFLAGS) -d -o p$$$$.c parse.y ; \
+-	grep '^#define[ 	]*YYEMPTY' p$$$$.c >> p$$$$.h ; \
+-	mv -f p$$$$.c parse.c ; mv -f p$$$$.h parse.h
++	cd $(srcdir)/; $(BISON) $(BISONFLAGS) -d -o cp/p$$$$.c cp/parse.y ; \
++	grep '^#define[ 	]*YYEMPTY' cp/p$$$$.c >> cp/p$$$$.h ; \
++	mv -f cp/p$$$$.c cp/parse.c ; mv -f cp/p$$$$.h cp/parse.h
+ 
+ #
+ # Build hooks:
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/method.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/method.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/method.c	2004-02-02 10:57:37.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/method.c	2021-02-16 21:43:43.022694428 +0000
+@@ -1768,7 +1768,7 @@
+ 
+   if (flag_new_abi)
+     {
+-      DECL_ASSEMBLER_NAME (decl) = mangle_decl (decl);
++      SET_DECL_ASSEMBLER_NAME (decl,  mangle_decl (decl));
+       return;
+     }
+ 
+@@ -1785,7 +1785,7 @@
+ 	    name = assignment_operator_name_info[(int) code].mangled_name;
+ 	  else
+ 	    name = operator_name_info[(int) code].mangled_name;
+-	  DECL_ASSEMBLER_NAME (decl) = get_identifier (name);
++	  SET_DECL_ASSEMBLER_NAME (decl,  get_identifier (name));
+ 	  return;
+ 	}
+     }
+@@ -1804,11 +1804,11 @@
+ 			|| TREE_CODE (TREE_TYPE (decl)) != FUNCTION_TYPE,
+ 			0);
+ 
+-  DECL_ASSEMBLER_NAME (decl)
+-    = build_decl_overload_real (decl, parm_types, NULL_TREE,
++  SET_DECL_ASSEMBLER_NAME (decl,
++    build_decl_overload_real (decl, parm_types, NULL_TREE,
+ 				NULL_TREE, NULL_TREE,
+ 				DECL_FUNCTION_MEMBER_P (decl)
+-				+ DECL_MAYBE_IN_CHARGE_CONSTRUCTOR_P (decl));
++				+ DECL_MAYBE_IN_CHARGE_CONSTRUCTOR_P (decl)));
+ }
+ 
+ /* Build an overload name for the type expression TYPE.  */
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/pt.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/pt.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/pt.c	2003-11-12 11:48:44.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/pt.c	2021-02-16 21:36:13.397922710 +0000
+@@ -4214,14 +4214,14 @@
+ 	 is set up.  */
+       if (TREE_CODE (t) != ENUMERAL_TYPE)
+ 	DECL_NAME (type_decl) = classtype_mangled_name (t);
+-      DECL_ASSEMBLER_NAME (type_decl) = DECL_NAME (type_decl);
++      SET_DECL_ASSEMBLER_NAME (type_decl,  DECL_NAME (type_decl));
+       if (!is_partial_instantiation)
+ 	{
+ 	  if (flag_new_abi)
+-	    DECL_ASSEMBLER_NAME (type_decl) = mangle_decl (type_decl);
++	    SET_DECL_ASSEMBLER_NAME (type_decl,  mangle_decl (type_decl));
+ 	  else
+-	    DECL_ASSEMBLER_NAME (type_decl)
+-	      = get_identifier (build_overload_name (t, 1, 1));
++	    SET_DECL_ASSEMBLER_NAME (type_decl,
++	      get_identifier (build_overload_name (t, 1, 1)));
+ 
+ 	  /* For backwards compatibility; code that uses
+ 	     -fexternal-templates expects looking up a template to
+@@ -5858,7 +5858,7 @@
+ 		if (flag_new_abi)
+ 		  set_mangled_name_for_decl (r);
+ 		else
+-		  DECL_ASSEMBLER_NAME (r) = build_destructor_name (ctx);
++		  SET_DECL_ASSEMBLER_NAME (r,  build_destructor_name (ctx));
+ 	      }
+ 	    else 
+ 	      {
+@@ -9752,7 +9752,7 @@
+      functions, this is not so.  See tsubst_friend_function for
+      details.  */
+   DECL_TI_TEMPLATE (new_decl) = DECL_TI_TEMPLATE (decl);
+-  DECL_ASSEMBLER_NAME (new_decl) = DECL_ASSEMBLER_NAME (decl);
++  SET_DECL_ASSEMBLER_NAME (new_decl,  DECL_ASSEMBLER_NAME (decl));
+   DECL_RTL (new_decl) = DECL_RTL (decl);
+   DECL_USE_TEMPLATE (new_decl) = DECL_USE_TEMPLATE (decl);
+ 
+@@ -10369,11 +10369,11 @@
+ 		      0);
+ 
+   /* Actually set the DECL_ASSEMBLER_NAME.  */
+-  DECL_ASSEMBLER_NAME (decl)
+-    = build_decl_overload_real (decl, parm_types, ret_type,
++  SET_DECL_ASSEMBLER_NAME (decl,
++    build_decl_overload_real (decl, parm_types, ret_type,
+ 				tparms, targs, 
+ 				DECL_FUNCTION_MEMBER_P (decl) 
+-			        + DECL_MAYBE_IN_CHARGE_CONSTRUCTOR_P (decl));
++			        + DECL_MAYBE_IN_CHARGE_CONSTRUCTOR_P (decl)));
+ }
+ 
+ /* Return truthvalue if we're processing a template different from
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/rtti.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/rtti.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/rtti.c	2003-11-12 11:48:44.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/rtti.c	2021-02-16 21:40:49.294405642 +0000
+@@ -446,7 +446,7 @@
+       TREE_PUBLIC (d) = 1;
+       if (flag_weak || !typeinfo_in_lib_p (d))
+ 	comdat_linkage (d);
+-      DECL_ASSEMBLER_NAME (d) = DECL_NAME (d);
++      SET_DECL_ASSEMBLER_NAME (d,  DECL_NAME (d));
+       cp_finish_decl (d, NULL_TREE, NULL_TREE, 0);
+ 
+       pushdecl_top_level (d);
+@@ -1343,10 +1343,10 @@
+     if (flag_new_abi)
+       /* The new ABI specifies the external name of the string
+ 	 containing the type's name.  */
+-      DECL_ASSEMBLER_NAME (name_decl) 
+-	= mangle_typeinfo_string_for_type (target);
++      SET_DECL_ASSEMBLER_NAME (name_decl,
++	mangle_typeinfo_string_for_type (target));
+     else
+-      DECL_ASSEMBLER_NAME (name_decl) = DECL_NAME (name_decl);
++      SET_DECL_ASSEMBLER_NAME (name_decl,  DECL_NAME (name_decl));
+     DECL_INITIAL (name_decl) = name_string;
+     cp_finish_decl (name_decl, name_string, NULL_TREE, 0);
+     pushdecl_top_level (name_decl);
+@@ -1753,7 +1753,7 @@
+       if (flag_weak || !typeinfo_in_lib_p (target_type))
+ 	comdat_linkage (decl);
+     }
+-  DECL_ASSEMBLER_NAME (decl) = name;
++  SET_DECL_ASSEMBLER_NAME (decl,  name);
+   DECL_INITIAL (decl) = init;
+   cp_finish_decl (decl, init, NULL_TREE, 0);
+   pushdecl_top_level (decl);
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/semantics.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/semantics.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/semantics.c	2003-11-12 11:48:44.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/semantics.c	2021-02-16 21:44:10.882739938 +0000
+@@ -1024,7 +1024,7 @@
+       if (DECL_NAME (decl) == NULL_TREE)
+ 	{
+ 	  DECL_NAME (decl) = return_id;
+-	  DECL_ASSEMBLER_NAME (decl) = return_id;
++	  SET_DECL_ASSEMBLER_NAME (decl,  return_id);
+ 	}
+       else
+ 	{
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/tree.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/tree.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/tree.c	2003-11-12 11:48:44.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/tree.c	2021-02-16 21:42:18.686555397 +0000
+@@ -1368,8 +1368,11 @@
+       break;
+ 
+     case RECORD_TYPE:
+-      if (TYPE_PTRMEMFUNC_P (*tp))
+-	WALK_SUBTREE (TYPE_PTRMEMFUNC_FN_TYPE (*tp));
++	  if (TYPE_PTRMEMFUNC_P (*tp))
++      {
++        tree tr = TYPE_PTRMEMFUNC_FN_TYPE (*tp);
++		WALK_SUBTREE(tr);
++	  }
+       break;
+ 
+     default:
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/gcc.c gcc-3.0-psion-98r2-9-src/src/gcc/gcc.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/gcc.c	2004-07-06 12:14:10.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/gcc/gcc.c	2021-02-16 20:45:03.506534921 +0000
+@@ -1176,8 +1176,8 @@
+ static const char *md_startfile_prefix = MD_STARTFILE_PREFIX;
+ static const char *md_startfile_prefix_1 = MD_STARTFILE_PREFIX_1;
+ static const char *standard_startfile_prefix = STANDARD_STARTFILE_PREFIX;
+-static const char *standard_startfile_prefix_1 = "/lib/";
+-static const char *standard_startfile_prefix_2 = "/usr/lib/";
++static const char *standard_startfile_prefix_1 = "/lib32/";
++static const char *standard_startfile_prefix_2 = "/usr/lib32/";
+ 
+ static const char *tooldir_base_prefix = TOOLDIR_BASE_PREFIX;
+ static const char *tooldir_prefix;
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/tree.h gcc-3.0-psion-98r2-9-src/src/gcc/tree.h
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/tree.h	2003-12-04 15:10:07.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/tree.h	2021-02-16 21:45:12.978840703 +0000
+@@ -1381,6 +1381,7 @@
+ 
+    This value can be evaluated lazily for functions, variables with
+    static storage duration, and labels.  */
++
+ #define DECL_RTL(NODE)					\
+   (DECL_CHECK (NODE)->decl.rtl				\
+    ? (NODE)->decl.rtl					\
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/Makefile.in gcc-3.0-psion-98r2-9-src/src/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/Makefile.in	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/Makefile.in	2021-02-16 20:49:30.438536138 +0000
+@@ -83,17 +83,18 @@
+ 
+ # These flag values are normally overridden by the configure script.
+ CFLAGS = -g
++CFLAGS_FOR_HOST = $(CFLAGS) -m32
+ CXXFLAGS = -g -O2
+ 
+ LDFLAGS = 
+-LIBCFLAGS = $(CFLAGS)
++LIBCFLAGS = $(CFLAGS_FOR_HOST)
+ CFLAGS_FOR_TARGET = $(CFLAGS)
+ LDFLAGS_FOR_TARGET = 
+ LIBCFLAGS_FOR_TARGET = $(CFLAGS_FOR_TARGET)
+ PICFLAG = 
+ PICFLAG_FOR_TARGET = 
+ 
+-CHILLFLAGS = $(CFLAGS)
++CHILLFLAGS = $(CFLAGS_FOR_HOST)
+ CHILL_LIB = -lchill
+ CXX = c++
+ 
+@@ -336,7 +337,7 @@
+ 	"BISON=$(BISON)" \
+ 	"CC_FOR_BUILD=$(CC_FOR_BUILD)" \
+ 	"CC_FOR_TARGET=$(CC_FOR_TARGET)" \
+-	"CFLAGS=$(CFLAGS)" \
++	"CFLAGS=$(CFLAGS_FOR_HOST)" \
+ 	"CFLAGS_FOR_TARGET=$(CFLAGS_FOR_TARGET)" \
+ 	"CHILLFLAGS=$(CHILLFLAGS)" \
+ 	"CHILL_FOR_TARGET=$(CHILL_FOR_TARGET)" \
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/tcl/unix/configure gcc-3.0-psion-98r2-9-src/src/tcl/unix/configure
+--- gcc-3.0-psion-98r2-9-src-orig/src/tcl/unix/configure	2003-10-14 15:34:06.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/tcl/unix/configure	2021-02-16 21:05:50.962540270 +0000
+@@ -4170,9 +4170,9 @@
+ 	# Special check for weird MP-RAS system (uname returns weird
+ 	# results, and the version is kept in special file).
+     
+-	if test -r /etc/.relid -a "X`uname -n`" = "X`uname -s`" ; then
+-	    system=MP-RAS-`awk '{print $3}' /etc/.relid'`
+-	fi
++#	if test -r /etc/.relid -a "X`uname -n`" = "X`uname -s`" ; then
++#	    system=MP-RAS-`awk '{print $3}' /etc/.relid'`
++#	fi
+ 	if test "`uname -s`" = "AIX" ; then
+ 	    system=AIX-`uname -v`.`uname -r`
+ 	fi
+@@ -5072,9 +5072,9 @@
+ 	# Special check for weird MP-RAS system (uname returns weird
+ 	# results, and the version is kept in special file).
+     
+-	if test -r /etc/.relid -a "X`uname -n`" = "X`uname -s`" ; then
+-	    system=MP-RAS-`awk '{print $3}' /etc/.relid'`
+-	fi
++#	if test -r /etc/.relid -a "X`uname -n`" = "X`uname -s`" ; then
++#	    system=MP-RAS-`awk '{print $3}' /etc/.relid'`
++#	fi
+ 	if test "`uname -s`" = "AIX" ; then
+ 	    system=AIX-`uname -v`.`uname -r`
+ 	fi
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/Makefile.in gcc-3.0-psion-98r2-9-src/src/gcc/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/Makefile.in	2003-10-14 15:33:45.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/gcc/Makefile.in	2021-02-20 23:50:47.203068962 +0000
+@@ -74,7 +74,7 @@
+ # TCFLAGS is used for compilations with the GCC just built.
+ XCFLAGS =
+ TCFLAGS =
+-CFLAGS = -g
++CFLAGS = -g -m32
+ STAGE1_CFLAGS = -g @stage1_cflags@
+ BOOT_CFLAGS = -g -O2
+ 
+@@ -523,7 +523,7 @@
+ # similar change is needed in build-make.
+ HOST_CFLAGS=$(ALL_CFLAGS) -DGENERATOR_FILE
+ HOST_CLIB=$(CLIB)
+-HOST_LDFLAGS=$(LDFLAGS)
++HOST_LDFLAGS=$(LDFLAGS) -m32
+ HOST_CPPFLAGS=$(ALL_CPPFLAGS)
+ HOST_ALLOCA=$(ALLOCA)
+ HOST_MALLOC=$(MALLOC)
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bfd/Makefile.in gcc-3.0-psion-98r2-9-src/src/bfd/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/bfd/Makefile.in	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bfd/Makefile.in	2021-02-21 00:02:19.563268581 +0000
+@@ -564,7 +564,7 @@
+ corefile.lo format.lo init.lo libbfd.lo opncls.lo reloc.lo section.lo \
+ syms.lo targets.lo hash.lo linker.lo srec.lo binary.lo tekhex.lo \
+ ihex.lo stabs.lo stab-syms.lo
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/libiberty/Makefile.in gcc-3.0-psion-98r2-9-src/src/libiberty/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/libiberty/Makefile.in	2003-10-14 15:34:13.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/libiberty/Makefile.in	2021-02-21 00:07:29.260110290 +0000
+@@ -53,7 +53,7 @@
+ AR_FLAGS = rc
+ 
+ CC = @CC@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ LIBCFLAGS = $(CFLAGS)
+ RANLIB = @RANLIB@
+
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/opcodes/Makefile.in gcc-3.0-psion-98r2-9-src/src/opcodes/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/opcodes/Makefile.in	2003-10-14 15:34:01.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/opcodes/Makefile.in	2021-02-21 00:09:28.133827345 +0000
+@@ -250,7 +250,7 @@
+ LTLIBRARIES =  $(lib_LTLIBRARIES)
+ 
+ libopcodes_la_OBJECTS =  dis-buf.lo disassemble.lo
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/byacc/Makefile.in gcc-3.0-psion-98r2-9-src/src/byacc/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/byacc/Makefile.in	2003-10-14 15:33:38.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/byacc/Makefile.in	2021-02-21 00:12:48.548205549 +0000
+@@ -36,7 +36,7 @@
+ 
+ HDRS	      = defs.h
+ 
+-CFLAGS	      = -g
++CFLAGS	      = -g -m32
+ 
+ MORE_CFLAGS   = -DNDEBUG @DEFS@
+ 
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/flex/Makefile.in gcc-3.0-psion-98r2-9-src/src/flex/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/flex/Makefile.in	2003-10-14 15:33:41.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/flex/Makefile.in	2021-02-21 00:14:32.761247791 +0000
+@@ -14,7 +14,7 @@
+ # For MS-DOS, add "-DMS_DOS" to DEFS.  See the directory MISC/MSDOS for
+ # additional info.
+ 
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ CPPFLAGS = @CPPFLAGS@
+ DEFS = @DEFS@
+ LDFLAGS =
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/intl/Makefile.in gcc-3.0-psion-98r2-9-src/src/intl/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/intl/Makefile.in	2003-10-14 15:33:54.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/intl/Makefile.in	2021-02-21 00:16:16.402183608 +0000
+@@ -51,8 +51,8 @@
+ DEFS = -DLOCALEDIR=\"$(localedir)\" -DGNULOCALEDIR=\"$(gnulocaledir)\" \
+ -DLOCALE_ALIAS_PATH=\"$(aliaspath)\" @DEFS@
+ CPPFLAGS = @CPPFLAGS@
+-CFLAGS = @CFLAGS@
+-LDFLAGS = @LDFLAGS@
++CFLAGS = @CFLAGS@ -m32
++LDFLAGS = @LDFLAGS@ -m32
+ 
+ COMPILE = $(CC) -c $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) $(XCFLAGS)
+
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/binutils/Makefile.in gcc-3.0-psion-98r2-9-src/src/binutils/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/binutils/Makefile.in	2003-10-14 15:33:37.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/binutils/Makefile.in	2021-02-21 00:18:27.735253742 +0000
+@@ -343,7 +343,7 @@
+ LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
+ LEXLIB = @LEXLIB@
+ YLWRAP = $(top_srcdir)/../ylwrap
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gas/Makefile.in gcc-3.0-psion-98r2-9-src/src/gas/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/gas/Makefile.in	2003-10-14 15:33:41.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/gas/Makefile.in	2021-02-21 00:20:29.896157034 +0000
+@@ -1285,7 +1285,7 @@
+ LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
+ LEXLIB = @LEXLIB@
+ YLWRAP = $(top_srcdir)/../ylwrap
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/ld/Makefile.in gcc-3.0-psion-98r2-9-src/src/ld/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/ld/Makefile.in	2003-10-14 15:33:54.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/ld/Makefile.in	2021-02-21 00:22:28.824969604 +0000
+@@ -246,7 +246,7 @@
+ ld_new_LDFLAGS = 
+ LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
+ LEXLIB = @LEXLIB@
+-CFLAGS = @CFLAGS@
++CFLAGS = @CFLAGS@ -m32
+ COMPILE = $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+ LINK = $(LIBTOOL) --mode=link $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bison/Makefile.in gcc-3.0-psion-98r2-9-src/src/bison/Makefile.in
+--- gcc-3.0-psion-98r2-9-src-orig/src/bison/Makefile.in	2003-10-14 15:33:38.000000000 +0100
++++ gcc-3.0-psion-98r2-9-src/src/bison/Makefile.in	2021-02-21 00:31:07.344028015 +0000
+@@ -38,7 +38,7 @@
+ # -DHAVE_STRERROR	If you have strerror function.
+ DEFS = @DEFS@
+ 
+-CFLAGS = -g
++CFLAGS = -g -m32
+ LDFLAGS =
+ 
+ LIBS = @LIBS@

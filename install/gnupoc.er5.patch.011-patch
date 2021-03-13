@@ -1,0 +1,320 @@
+diff -Naur epoc_cpp_sdk/epoc32/tools/aiftool cpp/epoc32/tools/aiftool
+--- epoc_cpp_sdk/epoc32/tools/aiftool	2021-02-21 02:43:56.938833548 +0000
++++ cpp/epoc32/tools/aiftool	2021-02-21 02:40:29.033744801 +0000
+@@ -51,7 +51,7 @@
+ #
+ echo Compiling resource file
+ arm-pe-cpp -I. -I../inc -I../../epoc32/include < $1.rss > $1.rpp
+-wine -- $EPOCROOT/epoc32/tools/rcomp.exe -oaif.rsc -h$1.rs~ -i$1.rss -s$1.rpp
++wine $EPOCROOT/epoc32/tools/rcomp.exe -oaif.rsc -h$1.rs~ -i$1.rss -s$1.rpp
+ cp aif.rsc $TMPDIR/aif.rsc
+ rm -f $1.rs~
+ rm -f $1.rpp
+@@ -68,7 +68,7 @@
+ # run Aiftool
+ #
+ echo Running AIF writer
+-wine -- $EPOCROOT/epoc32/release/winc/deb/aiftool.exe E:\\
++wine $EPOCROOT/epoc32/release/winc/deb/aiftool.exe E:\\
+ cp $TMPDIR/out.aif $1.aif
+ 
+ #
+diff -Naur epoc_cpp_sdk/epoc32/tools/bmconv cpp/epoc32/tools/bmconv
+--- epoc_cpp_sdk/epoc32/tools/bmconv	2021-02-21 02:43:56.938833548 +0000
++++ cpp/epoc32/tools/bmconv	2021-02-21 02:43:00.410542004 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- $EPOCROOT/epoc32/tools/bmconv.exe "$@"
++wine $EPOCROOT/epoc32/tools/bmconv.exe "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/cjpeg cpp/epoc32/tools/cjpeg
+--- epoc_cpp_sdk/epoc32/tools/cjpeg	2021-02-21 02:43:56.938833548 +0000
++++ cpp/epoc32/tools/cjpeg	2021-02-21 02:43:11.194597854 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- CJPEG.EXE "$@"
++wine CJPEG.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/cl_arm.pm cpp/epoc32/tools/cl_arm.pm
+--- epoc_cpp_sdk/epoc32/tools/cl_arm.pm	2021-02-21 02:43:56.942833569 +0000
++++ cpp/epoc32/tools/cl_arm.pm	2021-02-21 02:41:09.693961557 +0000
+@@ -173,7 +173,7 @@
+ #
+ 
+ #		"GCCFLAGS= -B/usr/local/er5/lib/gcc-lib/arm-pe/cygnus-2.7.2-960323/ -c -nostdinc -Wno-ctor-dtor-privacy -mcpu-arm710 -mapcs-32 \\\n",
+-		"GCCFLAGS= -c -nostdinc -Wno-ctor-dtor-privacy -mcpu-arm710 -mapcs-32 \\\n",
++		"GCCFLAGS= -c -nostdinc -Wno-ctor-dtor-privacy -mcpu=arm710 -mapcs-32 \\\n",
+ 		"\t\t-mshort-load-bytes -msoft-float -O2 -fcheck-new -fvtable-thunks\n",
+ 		"\n"
+ 	);
+@@ -650,7 +650,7 @@
+ 		}
+ 
+ 		&main::Output(
+-			"\twine -- \$(EPOCROOT)/epoc32/tools/petran.exe \$(EPOCBLD",$Bld,")\/",$Trg," \$\@ \\\n",
++			"\twine \$(EPOCROOT)/epoc32/tools/petran.exe \$(EPOCBLD",$Bld,")\/",$Trg," \$\@ \\\n",
+ 			"\t\t"
+ 		);
+ 		if (&main::AllowDllData) {
+@@ -861,7 +861,8 @@
+ 		}
+ 		&main::Output(
+ 			" < $RTWSubPrj",$Resrc," > ",$BaseResrc,".rpp\n",
+-			"\twine -- \$(EPOCROOT)/epoc32/tools/rcomp.exe"
++			"\tsed -i '/# [0-9]\\+ .\\+/d' ",$BaseResrc,".rpp\n",
++			"\twine \$(EPOCROOT)/epoc32/tools/rcomp.exe"
+ 		);
+ 		if ($Bld=~/^U/o) {
+ 			&main::Output(
+diff -Naur epoc_cpp_sdk/epoc32/tools/cl_lin.pm cpp/epoc32/tools/cl_lin.pm
+--- epoc_cpp_sdk/epoc32/tools/cl_lin.pm	2021-02-21 02:43:56.942833569 +0000
++++ cpp/epoc32/tools/cl_lin.pm	2021-02-21 02:42:17.854320461 +0000
+@@ -844,7 +844,7 @@
+ 		} 
+ 		&main::Output( 
+ 			" < $RTWSubPrj",$Resrc," > ",$BaseResrc,".rpp\n", 
+-			"\twine -- RCOMP.EXE" 
++			"\twine RCOMP.EXE" 
+ #			" < \"\$(SUBPRJ)\/",$Resrc,"\" > \"\$(SUBPRJ)\/",$BaseResrc,".rpp\"\n", 
+ #			"\trcomp" 
+ 		); 
+diff -Naur epoc_cpp_sdk/epoc32/tools/cl_win.pm cpp/epoc32/tools/cl_win.pm
+--- epoc_cpp_sdk/epoc32/tools/cl_win.pm	2021-02-21 02:43:56.942833569 +0000
++++ cpp/epoc32/tools/cl_win.pm	2021-02-21 02:39:36.393460916 +0000
+@@ -203,7 +203,7 @@
+ 	);
+ 
+ 	&main::Output(
+-		"CLWINE = wine -- CL.EXE\n",
++		"CLWINE = wine CL.EXE\n",
+ 		"\n"
+ 	);
+ 
+@@ -483,7 +483,7 @@
+ 			"\n",
+ 			"\n",
+ 		"\$(EPOCTRG",$Bld,")\/",$BaseTrg,".bsc: \$(BSC32_SBRS)\n",
+-		"\twine -- BSCMAKE.EXE \n",
++		"\twine BSCMAKE.EXE \n",
+ 		"\t/nologo /o\$\@ \$(BSC32_SBRS)\n",
+ 		"\n",
+ 		"\n"
+@@ -589,7 +589,7 @@
+ 		}
+ 		&main::Output(
+ 			" \$(LINK_OBJS_",$Bld,") \n",
+-			"\twine -- LINK.EXE -lib\n",
++			"\twine LINK.EXE -lib\n",
+ 			"\t\t\$(LINK_FLAGS_",$Bld,") \$(LINK_OBJS_",$Bld,")_WIN\n",
+ 			"\n"
+ 		);
+@@ -756,13 +756,13 @@
+ 		if ($GenTrgType=~/^DLL$/o) {
+ 
+ 			&main::Output(
+-				"\twine -- LINK.EXE ",
++				"\twine LINK.EXE ",
+ 				"\$(STAGE1_LINK_FLAGS_",$Bld,") \$(LINK_OBJS_",$Bld,"_WIN)\n",
+ #				"\n"
+ 			);
+ 
+ 			&main::Output(
+-				"\twine -- DEFMAKE.EXE" # using WINE emulator
++				"\twine DEFMAKE.EXE" # using WINE emulator
+ 			);
+ 			if ($DefFile) {
+ 				&main::Output(
+@@ -796,12 +796,12 @@
+ 
+ 			# create the lib file from the deffile
+ 			&main::Output(
+-				"\twine -- LIB.EXE \$(LIB_FLAGS_",$Bld,")\n"
++				"\twine LIB.EXE \$(LIB_FLAGS_",$Bld,")\n"
+ 			);
+ 		}
+ 
+ 		&main::Output(
+-			"\twine -- LINK.EXE ",
++			"\twine LINK.EXE ",
+ 			"\$(LINK_FLAGS_",$Bld,") \$(LINK_OBJS_",$Bld,"_WIN)\n",
+ 			"\n"
+ 		);
+@@ -1006,7 +1006,7 @@
+ 		}
+ 		&main::Output(
+ 			" <  $RTWSubPrj",$Resrc,"  >  $RTWSubPrj",$BaseResrc,".rpp \n",
+-			"\twine -- \$(EPOCROOT)/epoc32/tools/rcomp.exe"
++			"\twine \$(EPOCROOT)/epoc32/tools/rcomp.exe"
+ 		);
+ 		if ($Bld=~/^U/o) {
+ 			&main::Output(
+@@ -1018,7 +1018,7 @@
+ 			"\t-\$(ERASE) $RTWSubPrj",$BaseResrc,".rpp \n",
+ #			"\tcall << MayRewriteHdr.bat \n",
+ #			"\t\@echo off\n",
+-#			"\twine -- FC4BAT.EXE $RTWSubPrj",$BaseResrc,".rs~ ",$ResrcHdr," \n",
++#			"\twine FC4BAT.EXE $RTWSubPrj",$BaseResrc,".rs~ ",$ResrcHdr," \n",
+ 			"\tmv -f $RTWSubPrj",$BaseResrc,".rs~ ",$ResrcHdr," \n",
+ #			"\tif errorlevel==1 copy $RTWSubPrj",$BaseResrc,".rs~   ",$ResrcHdr," \n",
+ #			"<<\n",
+diff -Naur epoc_cpp_sdk/epoc32/tools/defmake cpp/epoc32/tools/defmake
+--- epoc_cpp_sdk/epoc32/tools/defmake	2021-02-21 02:43:56.942833569 +0000
++++ cpp/epoc32/tools/defmake	2021-02-21 02:42:44.902461483 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- DEFMAKE.EXE "$@"
++wine DEFMAKE.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/deftool cpp/epoc32/tools/deftool
+--- epoc_cpp_sdk/epoc32/tools/deftool	2021-02-21 02:43:56.942833569 +0000
++++ cpp/epoc32/tools/deftool	2021-02-21 02:41:37.806110228 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- DEFTOOL.EXE "$@"
++wine DEFTOOL.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/eikrs cpp/epoc32/tools/eikrs
+--- epoc_cpp_sdk/epoc32/tools/eikrs	2021-02-21 02:43:56.946833589 +0000
++++ cpp/epoc32/tools/eikrs	2021-02-21 02:42:35.130410621 +0000
+@@ -23,11 +23,11 @@
+ #
+ # some aliases
+ #
+-RCOMP="wine -- $EPOCROOT/epoc32/tools/rcomp.exe"
++RCOMP="wine $EPOCROOT/epoc32/tools/rcomp.exe"
+ RM='rm -f'
+ RSS=rss
+ CPP=arm-pe-cpp
+-FC4BAT="wine -- $EPOCROOT/epoc32/tools/fc4bat.exe"
++FC4BAT="wine $EPOCROOT/epoc32/tools/fc4bat.exe"
+  
+ 
+ testrscdir()
+diff -Naur epoc_cpp_sdk/epoc32/tools/fc4bat cpp/epoc32/tools/fc4bat
+--- epoc_cpp_sdk/epoc32/tools/fc4bat	2021-02-21 02:43:56.946833589 +0000
++++ cpp/epoc32/tools/fc4bat	2021-02-21 02:42:51.398495242 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- FC4BAT.EXE "$@"
++wine FC4BAT.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/fnttran cpp/epoc32/tools/fnttran
+--- epoc_cpp_sdk/epoc32/tools/fnttran	2021-02-21 02:43:56.946833589 +0000
++++ cpp/epoc32/tools/fnttran	2021-02-21 02:40:02.481602089 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- FNTTRAN.EXE "$@"
++wine FNTTRAN.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/fontcomp cpp/epoc32/tools/fontcomp
+--- epoc_cpp_sdk/epoc32/tools/fontcomp	2021-02-21 02:43:56.946833589 +0000
++++ cpp/epoc32/tools/fontcomp	2021-02-21 02:40:38.021792898 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- FONTCOMP.EXE "$@"
++wine FONTCOMP.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/makesis cpp/epoc32/tools/makesis
+--- epoc_cpp_sdk/epoc32/tools/makesis	2021-02-21 02:43:56.946833589 +0000
++++ cpp/epoc32/tools/makesis	2021-02-21 02:40:56.165889672 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- $EPOCROOT/epoc32/tools/makesis.exe "$@"
++wine $EPOCROOT/epoc32/tools/makesis.exe "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/makmake.pl cpp/epoc32/tools/makmake.pl
+--- epoc_cpp_sdk/epoc32/tools/makmake.pl	2021-02-21 02:43:56.950833610 +0000
++++ cpp/epoc32/tools/makmake.pl	2021-02-21 01:33:13.173444099 +0000
+@@ -257,7 +257,7 @@
+ 	foreach $LoopBld (@BldList) {
+ 		$CurBld=$LoopBld;
+ 		@{$MacroHash{$CurBld}}=&PMGetBldMacroList;
+-		@{$MacroHash{$CurBld}}=() if not defined @{$MacroHash{$CurBld}};
++		@{$MacroHash{$CurBld}}=() if not @{$MacroHash{$CurBld}};
+ 		next unless ($MmpFlag{NoStrictDef} || (not defined $DefBaseExtHash{$CurBld}));
+ 		$DefBaseExtHash{$CurBld}='';
+ 	}
+@@ -640,9 +640,9 @@
+ 	}
+ 	@{$SubPrjHash{$SubPrj}}=();
+ 	push @{$SrcHash{$SubPrj}}, &Path_Split('File',$SRCFILE);
+-	@{$DocHash{$SubPrj}}=() unless defined @{$DocHash{$SubPrj}};
+-	@{$ResrcHash{$SubPrj}}=() unless defined @{$ResrcHash{$SubPrj}};
+-	@{$SysResrcHash{$SubPrj}}=() unless defined @{$SysResrcHash{$SubPrj}};
++	@{$DocHash{$SubPrj}}=() unless @{$DocHash{$SubPrj}};
++	@{$ResrcHash{$SubPrj}}=() unless @{$ResrcHash{$SubPrj}};
++	@{$SysResrcHash{$SubPrj}}=() unless @{$SysResrcHash{$SubPrj}};
+ }
+ sub AddPlatMacros (@) {
+ # allows modules to add extra macros to the platform macro list
+diff -Naur epoc_cpp_sdk/epoc32/tools/mmp.pm cpp/epoc32/tools/mmp.pm
+--- epoc_cpp_sdk/epoc32/tools/mmp.pm	2021-02-21 02:43:56.950833610 +0000
++++ cpp/epoc32/tools/mmp.pm	2021-02-21 01:32:33.401248255 +0000
+@@ -484,10 +484,10 @@
+ 					$MyCurSubPrj=&Path_MakeAbs("$Prj\/",$MyCurSubPrj);	# relative subproject paths treated as relative to the project
+ #					print "MyCurSubPrj2: \"$MyCurSubPrj\"\n";
+ 					@{$SubPrjHash{$MyCurSubPrj}}=(); # ../subprj style
+-					@{$DocHash{$MyCurSubPrj}}=() unless defined @{$DocHash{$MyCurSubPrj}};
+-					@{$ResrcHash{$MyCurSubPrj}}=() unless defined @{$ResrcHash{$MyCurSubPrj}};
+-					@{$SrcHash{$MyCurSubPrj}}=() unless defined @{$SrcHash{$MyCurSubPrj}};
+-					@{$SysResrcHash{$MyCurSubPrj}}=() unless defined @{$SysResrcHash{$MyCurSubPrj}};
++					@{$DocHash{$MyCurSubPrj}}=() unless @{$DocHash{$MyCurSubPrj}};
++					@{$ResrcHash{$MyCurSubPrj}}=() unless @{$ResrcHash{$MyCurSubPrj}};
++					@{$SrcHash{$MyCurSubPrj}}=() unless @{$SrcHash{$MyCurSubPrj}};
++					@{$SysResrcHash{$MyCurSubPrj}}=() unless @{$SysResrcHash{$MyCurSubPrj}};
+ #					if (-d &Path_ChopPath($MyCurSubPrj)) {
+ 					if (-d "$MyCurSubPrj" ) {
+ 						next LINE;
+diff -Naur epoc_cpp_sdk/epoc32/tools/pdrtran cpp/epoc32/tools/pdrtran
+--- epoc_cpp_sdk/epoc32/tools/pdrtran	2021-02-21 02:43:56.950833610 +0000
++++ cpp/epoc32/tools/pdrtran	2021-02-21 02:41:47.838163059 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- PDRTRAN.EXE "$@"
++wine PDRTRAN.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/pediff cpp/epoc32/tools/pediff
+--- epoc_cpp_sdk/epoc32/tools/pediff	2021-02-21 02:43:56.950833610 +0000
++++ cpp/epoc32/tools/pediff	2021-02-21 02:40:47.141841593 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- PEDIFF.EXE "$@"
++wine PEDIFF.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/petran cpp/epoc32/tools/petran
+--- epoc_cpp_sdk/epoc32/tools/petran	2021-02-21 02:43:56.950833610 +0000
++++ cpp/epoc32/tools/petran	2021-02-21 02:42:07.830268000 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- PETRAN.EXE "$@"
++wine PETRAN.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/rcomp cpp/epoc32/tools/rcomp
+--- epoc_cpp_sdk/epoc32/tools/rcomp	2021-02-21 02:43:56.954833630 +0000
++++ cpp/epoc32/tools/rcomp	2021-02-21 02:42:25.326359496 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- $EPOCROOT/epoc32/tools/RCOMP.EXE "$@"
++wine $EPOCROOT/epoc32/tools/RCOMP.EXE "$@"
+diff -Naur epoc_cpp_sdk/epoc32/tools/rtf2ptml cpp/epoc32/tools/rtf2ptml
+--- epoc_cpp_sdk/epoc32/tools/rtf2ptml	2021-02-21 02:43:56.954833630 +0000
++++ cpp/epoc32/tools/rtf2ptml	2021-02-21 02:42:00.342228751 +0000
+@@ -2,4 +2,4 @@
+ #
+ # WINE frontend - part of GnuPoc
+ #
+-wine -- RTF2PTML.EXE "$@"
++wine RTF2PTML.EXE "$@"
