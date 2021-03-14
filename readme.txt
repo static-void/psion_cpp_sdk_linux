@@ -63,8 +63,9 @@ API layer on top of x86 windows. It can only run EPOC applications explicitly
 compiled for the wins target, and most psion software is not available for
 wins. It may be better to bundle WindEmu [1] with the SDK, which emulates a
 real 5mx, and thus makes the wins compilation target redundant. With some
-modification it may even be possible to add a gdbserver to WindEmu for
-debugging.
+modification it may even be possible to add a gdbserver to WindEmu, which
+might allow real debugging to be done, albeit bare metal only, since gdb
+has no idea about the EPOC threading model etc.
 
 Background
 ----------
