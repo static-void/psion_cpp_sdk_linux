@@ -71,8 +71,8 @@ Background
 ----------
 The SDK, despite being based on GCC, was never intended to work on a Linux
 system.  However, various parties worked to make it compatible with Linux,
-using somewhat different approaches, but all were abandoned 10-20 years ago.
-The SDK presented here is a mash up of the GnuPoc [2] and sdk2unix [3]
+using somewhat different approaches (though all were abandoned 10-20 years
+ago). The SDK presented here is a mash up of the GnuPoc [2] and sdk2unix [3]
 approaches.
 
 The SDK consists of three parts:
