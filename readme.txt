@@ -20,7 +20,7 @@ Change to the install directory:
 
 And run the install script:
 
-  ./install
+  ./install.sh
 
 It takes about two or three minutes to compile and generate everything on my machine.
 
