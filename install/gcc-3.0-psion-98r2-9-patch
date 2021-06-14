@@ -1058,3 +1058,27 @@ diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/bison/Makefile.in gcc-3.0-psion-98r
  LDFLAGS =
  
  LIBS = @LIBS@
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/c-lex.c gcc-3.0-psion-98r2-9-src/src/gcc/c-lex.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/c-lex.c	2003-11-12 13:24:50.000000000 +0000
++++ gcc-3.0-psion-98r2-9-src/src/gcc/c-lex.c	2021-06-14 00:05:53.028994576 +0100
+@@ -73,7 +73,7 @@
+ #define WCHAR_BYTES (WCHAR_TYPE_SIZE / BITS_PER_UNIT)
+ 
+ int indent_level;        /* Number of { minus number of }. */
+-int pending_lang_change; /* If we need to switch languages - C++ only */
++static int pending_lang_change; /* If we need to switch languages - C++ only */
+ int c_header_level;	 /* depth in C headers - C++ only */
+ 
+ /* Nonzero tells yylex to ignore \ in string constants.  */
+diff -Naur gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/method.c gcc-3.0-psion-98r2-9-src/src/gcc/cp/method.c
+--- gcc-3.0-psion-98r2-9-src-orig/src/gcc/cp/method.c	2021-06-14 00:11:02.369047710 +0100
++++ gcc-3.0-psion-98r2-9-src/src/gcc/cp/method.c	2021-06-14 00:05:14.824986856 +0100
+@@ -56,7 +56,7 @@
+ 
+ /* TREE_LIST of the current inline functions that need to be
+    processed.  */
+-struct pending_inline *pending_inlines;
++static struct pending_inline *pending_inlines;
+ 
+ #define obstack_chunk_alloc xmalloc
+ #define obstack_chunk_free free
